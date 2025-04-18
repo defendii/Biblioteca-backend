@@ -8,5 +8,8 @@
   },
   "author": "",
   "license": "ISC",
-  "description": ""
+  "description": "",
+  "dependencies": {
+    "fastify": "^5.3.2"
+  }
 }
