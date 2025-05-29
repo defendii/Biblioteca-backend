@@ -17,30 +17,58 @@ async function main() {
     })
 
     server.post("/usuario", async (request, reply) => {
-        const { id_usuario, registro_academico, nome, data_nascimento, email, telefone, id_tipo } = request.body
+        const { registro_academico, nome, data_nascimento, email, telefone, tipo } = request.body
+       server.post("/usuario", async (request, reply) => {
+    console.log("🔍 Body recebido no POST /usuario:");
+    console.log(request.body);
 
-        await database.create({
-            id_usuario,
-            registro_academico,
-            nome,
-            data_nascimento,
-            email,
-            telefone,
-            id_tipo,
-        })
+    const { registro_academico, nome, data_nascimento, email, telefone, tipo } = request.body;
+
+    console.log("🧪 Verificando campos recebidos:");
+    console.log("registro_academico:", registro_academico);
+    console.log("nome:", nome);
+    console.log("data_nascimento:", data_nascimento);
+    console.log("email:", email);
+    console.log("telefone:", telefone);
+    console.log("tipo:", tipo);
+
+    if (
+        !registro_academico ||
+        !nome ||
+        !data_nascimento ||
+        !email ||
+        !telefone ||
+        !tipo
+    ) {
+        return reply.status(400).send({
+            error: "Todos os campos são obrigatórios e não podem ser undefined.",
+        });
+    }
+
+    await database.create({
+        registro_academico,
+        nome,
+        data_nascimento,
+        email,
+        telefone,
+        tipo,
+    });
+
+    return reply.status(201).send();
+});
 
         return reply.status(201).send()
     });
 
-    server.get("/usuarios", async (request, reply) => {
+    server.get("/usuario", async (request, reply) => {
         const { nome } = request.query
-        const usuarios = await database.list(nome)
-        reply.send(usuarios)
+        const usuario = await database.list(nome)
+        reply.send(usuario)
     });
 
-    server.put("/usuarios/:id", async (request, reply) => {
+    server.put("/usuario/:id", async (request, reply) => {
         const id_usuario = request.params.id
-        const { registro_academico, nome, data_nascimento, email, telefone, id_tipo } = request.body
+        const { registro_academico, nome, data_nascimento, email, telefone, tipo } = request.body
 
         await database.update(id_usuario, {
             registro_academico,
@@ -48,7 +76,7 @@ async function main() {
             data_nascimento,
             email,
             telefone,
-            id_tipo,
+            tipo,
         })
 
         return reply.status(204).send()

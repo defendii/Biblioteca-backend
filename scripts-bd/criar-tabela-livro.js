@@ -1,6 +1,6 @@
 import { sql } from "../db.js"
 
-export async function criarAluno(){
+export async function criarLivro(){
     try {
         await sql`
         CREATE TABLE livro (

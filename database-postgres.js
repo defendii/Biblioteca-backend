@@ -9,26 +9,25 @@ export class DatabasePostgres {
         let usuario;
 
         if (search) {
-        usuario = await sql`select * from usuario where nome ilike ${
+        usuario = await sql `SELECT * FROM usuario WHERE nome ILIKE ${
             "%" + search + "%"
         }`;
         } else {
-        usuario = await sql`select * from usuario`;
+        usuario = await sql `SELECT * FROM usuario`;
         }
 
         return usuario;
     }
 
     async create(usuario) {
-        const id_usuario = randomUUID();
-        const { registro_academico, nome, data_nascimento, email, telefone, id_tipo } = usuario;
+        const { registro_academico, nome, data_nascimento, email, telefone, tipo } = usuario;
 
-        await sql`insert into usuarios (id, registro_academico, nome, data_nascimento, email, telefone, id_tipo) VALUES (${id_usuario}, ${registro_academico}, ${nome}, ${data_nascimento}, ${email}, ${telefone}, ${id_tipo})`;
+        await sql `INSERT INTO usuario (registro_academico, nome, data_nascimento, email, telefone, tipo) VALUES (${registro_academico}, ${nome}, ${data_nascimento}, ${email}, ${telefone}, ${tipo})`;
     }
 
-    async update(id, usuario) {
-        const { registro_academico, nome, data_nascimento, email, telefone, id_tipo } = usuario;
+    async update(id_usuario, usuario) {
+        const { registro_academico, nome, data_nascimento, email, telefone, tipo } = usuario;
 
-        await sql`update usuarios set registro_academico = ${registro_academico}, nome = ${nome}, data_nascimento = ${data_nascimento}, email = ${email}, telefone = ${telefone}, tipo_id= ${id_tipo} WHERE id = ${id}`;
+        await sql `UPDATE usuario SET registro_academico = ${registro_academico}, nome = ${nome}, data_nascimento = ${data_nascimento}, email = ${email}, telefone = ${telefone}, tipo = ${tipo} WHERE id_usuario = ${id_usuario}`;
     }
     }
