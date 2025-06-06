@@ -54,21 +54,16 @@ CREATE TABLE categoria (
 	PRIMARY KEY (id_categoria)
 );
 
-CREATE TABLE subcategoria (
-	id_subcategoria SERIAL,
-	nome_subcategoria VARCHAR(50),
-	id_categoria INTEGER REFERENCES categoria(id_categoria),
-	PRIMARY KEY (id_subcategoria)
-);
-
 CREATE TABLE categoria_do_livro (
 	id_livro INTEGER REFERENCES livro(id_livro),
-	id_categoria INTEGER REFERENCES categoria(id_categoria)
+	id_categoria INTEGER REFERENCES categoria(id_categoria),
+	PRIMARY KEY(id_livro, id_categoria);
 );
 
 CREATE TABLE subcategoria_da_categoria(
 	id_categoria INTEGER REFERENCES categoria(id_categoria),
-	id_subcategoria INTEGER REFERENCES subcategoria(id_subcategoria)
+	id_subcategoria INTEGER REFERENCES categoria(id_categoria)
+	PRIMARY KEY(id_categoria, id_subcategoria);
 );
 
 CREATE TABLE autores(
@@ -109,43 +104,3 @@ CREATE TABLE editora_do_livro(
 	id_livro INTEGER REFERENCES livro(id_livro),
 	id_editora INTEGER REFERENCES editora(id_editora)
 )
-
--- server.post("/usuario", async (request, reply) => {
---         console.log("🔥 ROTA POST /usuario ATIVADA");
---         console.log("🔍 Body recebido no POST /usuario:");
---         console.log(request.body);
-    
---         const { registro_academico, nome, data_nascimento, email, telefone, tipo } = request.body;
-    
---         console.log("🧪 Verificando campos recebidos:");
---         console.log("registro_academico:", registro_academico);
---         console.log("nome:", nome);
---         console.log("data_nascimento:", data_nascimento);
---         console.log("email:", email);
---         console.log("telefone:", telefone);
---         console.log("tipo:", tipo);
-    
---         if (
---             !registro_academico ||
---             !nome ||
---             !data_nascimento ||
---             !email ||
---             !telefone ||
---             !tipo
---         ) {
---             return reply.status(400).send({
---                 error: "Todos os campos são obrigatórios e não podem ser undefined.",
---             });
---         }
-    
---         await database.create({
---             registro_academico,
---             nome,
---             data_nascimento,
---             email,
---             telefone,
---             tipo,
---         });
-    
---         return reply.status(201).send();
---     });
