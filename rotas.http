@@ -10,5 +10,6 @@ Content-Type: application/json
     "data_nascimento": "2000-10-10",
     "email": "jose@gmail.com",
     "telefone": "4491234-1234",
-    "tipo": "aluno"
+    "tipo": "aluno",
+    "is_ativo": true
 }

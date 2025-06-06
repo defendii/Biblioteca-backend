@@ -10,10 +10,10 @@ exports.listarUsuarios = async function(){
 exports.criarUsuario = async function(novo_usuario){
     const erros = [];
 
-    const user = await usuarioDAO.procurarUsuarioPeloRegistro_academico(novo_usuario.removerUsuario);
+    const user = await usuarioDAO.procurarUsuarioPeloRegistro_academico(novo_usuario.registro_academico);
 
     if(user.length != 0){
-        erros.push("Erro: username já cadastrado!");
+        erros.push("Erro: registro acadêmico já cadastrado!");
     }
     
     if(erros.length > 0){
@@ -24,7 +24,7 @@ exports.criarUsuario = async function(novo_usuario){
     return [];
 }
 
-// Função responsável por remover um usuário pelo 'username'
-exports.removerUsuario = async function(username){
-    return await usuarioDAO.removerUsuarioPeloUsername(username);
+// Função responsável por remover um usuário pelo 'id_usuario'
+exports.removerUsuario = async function(id_usuario){
+    return await usuarioDAO.removerUsuarioPeloId_usuario(id_usuario);
 }

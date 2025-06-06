@@ -1,28 +1,21 @@
 const express = require('express');
 const app = express();
-const port = 8086;
-const handlebars = require('express-handlebars');
+const port = 3333;
 const bodyParser = require('body-parser');
 const fileupload = require('express-fileupload');
+const cors = require('cors');
 
 //Adicionar Bootstrap
 app.use('/bootstrap', express.static('./node_modules/bootstrap/dist'))
 
 const usuarioController = require('./controller/usuario.controller');
-const produtoController = require('./controller/produto.controller');
 const usuario = require('./entidades/usuario');
-const produto = require('./entidades/produto');
-const email = require('./config/email');
-
-//Configuração do Handlebars (necessário a partir da rota #2)
-//Informa ao express qual template engine será usado
-app.engine('handlebars', handlebars.engine({ defaultLayout: 'main' }));
-app.set('view engine', 'handlebars');
-app.set('views', './views');
 
 //Configuração do body-parser
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
+
+app.use(cors());
 
 //Configuração express-fileupload
 app.use(fileupload());
@@ -35,26 +28,24 @@ app.get('/', function (req, res) {
 });
 
 app.get('/listarUsuarios', function (req, res) {
-  const resultado = usuarioController.listarUsuarios();
-  resultado.then(resp => { res.render('listagemUsuarios', { resp }) });
+    const resp = usuarioController.listarUsuarios();
+    res.json(resp);  // Retorna a lista de usuários em JSON
 });
 
 app.get('/cadastrarUsuario', function (req, res) {
-  res.render('cadastroUsuario');
+  res.json({ mensagem: "Aqui deveria estar o formulário para cadastrar usuário" });
 });
 
 app.post('/cadastrarUsuario', function (req, res) {
-  const novo_usuario = new usuario(req.body.nome, req.body.username, req.body.senha, req.body.email);
+  const novo_usuario = new usuario(null, req.body.nome, req.body.registro_academico, req.body.data_nascimento, req.body.email, req.body.telefone, req.body.tipo, req.body.is_ativo);
 
-  const resultado = usuarioController.criarUsuario(novo_usuario);
-  resultado.then(resp => {
-    if (resp.length > 0) {
-      res.render('cadastroUsuario', { usuario: novo_usuario, mensagem: resp });
-    } else {
-      email(novo_usuario.email, 'Cadastro no Sistema', 'Seu cadastro foi realizado!');
-      res.redirect('/listarUsuarios');
-    }
-  });
+  usuarioController.criarUsuario(novo_usuario)
+    .then(resp => {
+      res.json({ mensagem: resp });
+    })
+    .catch(err => {
+      res.status(500).json({ error: 'Erro ao cadastrar usuário' });
+    });
 
 });
 
@@ -63,60 +54,6 @@ app.post('/removerUsuario', function (req, res) {
   resultado.then(resp => { res.redirect('/listarUsuarios'); });
 });
 
-
-app.get('/cadastrarProduto', function (req, res) {
-  const resultados = produtoController.listarProdutos();
-
-  resultados.then(produtos => {
-    res.render('cadastroProduto', { produtos });
-  });
-
-});
-
-app.post('/cadastrarProduto', function (req, res) {
-
-  const novo_produto = new produto(req.body.nome, req.body.valor, req.files.imagem);
-
-  const resultado = produtoController.cadastrarProduto(novo_produto);
-
-  res.redirect('/cadastrarProduto');
-});
-
-app.get('/removerProduto/:id&:imagem', function (req, res) {
-  const resposta = produtoController.removerProduto(req.params.id, req.params.imagem)
-
-  resposta.then(resp => {
-    res.redirect('/cadastrarProduto')
-  })
-})
-
-app.get('/alterarProduto:id', function (req, res) {
-  const resposta = produtoController.consultarProduto(req.params.id);
-
-  resposta.then(resp => {
-    if(resp){
-      res.render('edicaoProduto', {produto:resp})
-    }else{
-      res.redirect('cadastrarProduto')
-    }
-  })
-})
-
-app.post('/alterarProduto', function(req, res){
-  let edicao_produto;
-
-  try{
-    edicao_produto = new produto(req.body.nome, req.body.valor, req.files.imagem, req.body.id_produto)
-  }catch(erro){
-    edicao_produto = new produto(req.body.nome, req.body.valor, null, req.body.id_produto)
-  }
-
-  const resultado = produtoController.atualizarProduto(edicao_produto, req.body.imagemAntiga);
-
-  resultado.then(resp => {
-    res.redirect('/cadastrarProduto')
-  })
-})
 
 app.listen(port, () => {
   console.log(`Servidor rodando na porta ${port}...`);
