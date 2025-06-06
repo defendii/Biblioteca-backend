@@ -1,7 +1,9 @@
 class Curso {
-    constructor(nome, codigo) {
+    constructor(id_curso, nome, codigo, is_ativo) {
+        this.id_curso = id_curso;
         this.nome = nome;
-        this.codigo = this.codigo;
+        this.codigo = codigo;
+        this.is_ativo = is_ativo;
     }
 }
 
