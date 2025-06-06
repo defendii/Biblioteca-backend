@@ -1,8 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { sql } from "./db.js";
-import { criar } from './scripts-bd/criar-tabela-usuario.js';
 
-await criar()
 export class DatabasePostgres {
 
     async list(search) {

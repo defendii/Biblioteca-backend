@@ -2,8 +2,11 @@ import { fastify } from "fastify"
 import cors from "@fastify/cors"
 import "dotenv/config"
 import { DatabasePostgres } from "./database-postgres.js"
+import { criar } from './scripts-bd/criar-tabela-usuario.js';
 
 async function main() {
+    await criar()
+
     const server = fastify()
 
     await server.register(cors, {
@@ -18,46 +21,40 @@ async function main() {
 
     server.post("/usuario", async (request, reply) => {
         const { registro_academico, nome, data_nascimento, email, telefone, tipo } = request.body
-       server.post("/usuario", async (request, reply) => {
-    console.log("🔍 Body recebido no POST /usuario:");
-    console.log(request.body);
+        console.log("🔍 Body recebido no POST /usuario:");
+        console.log(request.body);
 
-    const { registro_academico, nome, data_nascimento, email, telefone, tipo } = request.body;
+        console.log("🧪 Verificando campos recebidos:");
+        console.log("registro_academico:", registro_academico);
+        console.log("nome:", nome);
+        console.log("data_nascimento:", data_nascimento);
+        console.log("email:", email);
+        console.log("telefone:", telefone);
+        console.log("tipo:", tipo);
 
-    console.log("🧪 Verificando campos recebidos:");
-    console.log("registro_academico:", registro_academico);
-    console.log("nome:", nome);
-    console.log("data_nascimento:", data_nascimento);
-    console.log("email:", email);
-    console.log("telefone:", telefone);
-    console.log("tipo:", tipo);
+        if (
+            !registro_academico ||
+            !nome ||
+            !data_nascimento ||
+            !email ||
+            !telefone ||
+            !tipo
+        ) {
+            return reply.status(400).send({
+                error: "Todos os campos são obrigatórios e não podem ser undefined.",
+            });
+        }
 
-    if (
-        !registro_academico ||
-        !nome ||
-        !data_nascimento ||
-        !email ||
-        !telefone ||
-        !tipo
-    ) {
-        return reply.status(400).send({
-            error: "Todos os campos são obrigatórios e não podem ser undefined.",
+        await database.create({
+            registro_academico,
+            nome,
+            data_nascimento,
+            email,
+            telefone,
+            tipo,
         });
-    }
 
-    await database.create({
-        registro_academico,
-        nome,
-        data_nascimento,
-        email,
-        telefone,
-        tipo,
-    });
-
-    return reply.status(201).send();
-});
-
-        return reply.status(201).send()
+        return reply.status(201).send();
     });
 
     server.get("/usuario", async (request, reply) => {
