@@ -9,7 +9,9 @@ const cors = require('cors');
 app.use('/bootstrap', express.static('./node_modules/bootstrap/dist'))
 
 const usuarioController = require('./controller/usuario.controller');
+const autoresController = require('./controller/autores.controller');
 const usuario = require('./entidades/usuario');
+const autores = require('./entidades/autores')
 
 //Configuração do body-parser
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -52,6 +54,35 @@ app.post('/cadastrarUsuario', function (req, res) {
 app.post('/removerUsuario', function (req, res) {
   const resultado = usuarioController.removerUsuario(req.query.username);
   resultado.then(resp => { res.redirect('/listarUsuarios'); });
+});
+
+
+
+app.get('/listarAutores', function (req, res) {
+    const resp = usuarioController.listarAutores();
+    res.json(resp);  // Retorna a lista de autores em JSON
+});
+
+app.get('/cadastrarAutor', function (req, res) {
+  res.json({ mensagem: "Aqui deveria estar o formulário para cadastrar autor" });
+});
+
+app.post('/cadastrarAutor', function (req, res) {
+  const novo_autor = new autores(null, req.body.nome_autor, req.body.is_ativo);
+
+  autoresController.criarAutor(novo_autor)
+    .then(resp => {
+      res.json({ mensagem: resp });
+    })
+    .catch(err => {
+      res.status(500).json({ error: 'Erro ao cadastrar autor' });
+    });
+
+});
+
+app.post('/removerAutores', function (req, res) {
+  const resultado = autoresController.removerAutor(req.query.id_autor);
+  resultado.then(resp => { res.redirect('/listarAutores'); });
 });
 
 

@@ -1,6 +1,8 @@
 class Autores {
-    constructor(nome_autor) {
+    constructor(id_autor, nome_autor, is_ativo) {
+        this.id_autor = id_autor;
         this.nome_autor = nome_autor;
+        this.is_ativo = is_ativo
     }
 }
 

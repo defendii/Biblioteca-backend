@@ -2,7 +2,7 @@ const db = require("../config/database");
 
 // Função responsável por listar todos os usuários
 exports.listarUsuarios = async function(){
-    const {rows} = await db.query("SELECT * FROM usuario WHERE isativo = true");
+    const {rows} = await db.query("SELECT * FROM usuario WHERE is_ativo = true");
     return rows;
 }
 
