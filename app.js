@@ -12,10 +12,14 @@ const usuarioController = require('./controller/usuario.controller');
 const autoresController = require('./controller/autores.controller');
 const editoraController = require('./controller/editora.controller');
 const cursoController = require('./controller/curso.controller');
+const categoriaController = require('./controller/categoria.controller');
+const livroController = require('./controller/livro.controller');
 const usuario = require('./entidades/usuario');
 const autores = require('./entidades/autores');
 const editora = require('./entidades/editora');
 const curso = require('./entidades/curso');
+const categoria = require('./entidades/categoria');
+const livro = require('./entidades/livro');
 
 //Configuração do body-parser
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -33,8 +37,8 @@ app.get('/', function (req, res) {
 
 });
 
-// usuario
 
+// usuario
 app.get('/listarUsuarios', function (req, res) {
     const resp = usuarioController.listarUsuarios();
     res.json(resp);  // Retorna a lista de usuários em JSON
@@ -62,8 +66,8 @@ app.post('/removerUsuario', function (req, res) {
   resultado.then(resp => { res.redirect('/listarUsuarios'); });
 });
 
-//autores
 
+//autores
 app.get('/listarAutores', function (req, res) {
     const resp = usuarioController.listarAutores();
     res.json(resp);  // Retorna a lista de autores em JSON
@@ -91,8 +95,8 @@ app.post('/removerAutores', function (req, res) {
   resultado.then(resp => { res.redirect('/listarAutores'); });
 });
 
-// editora
 
+// editora
 app.get('/listarEditoras', function (req, res) {
     const resp = usuarioController.listarEditoras();
     res.json(resp);  // Retorna a lista de editoras em JSON
@@ -121,8 +125,8 @@ app.post('/removerEditora', function (req, res) {
   resultado.then(resp => { res.redirect('/listarEditoras'); });
 });
 
-// curso
 
+// curso
 app.get('/listarCursos', function (req, res) {
     const resp = usuarioController.listarCursos();
     res.json(resp);  // Retorna a lista de cursos em JSON
@@ -150,6 +154,66 @@ app.post('/removerCurso', function (req, res) {
   const resultado = cursoController.removerCurso(req.query.id_curso);
   resultado.then(resp => { res.redirect('/listarCursos'); });
 });
+
+
+//categoria
+app.get('/listarCategorias', function (req, res) {
+    const resp = usuarioController.listarCategorias();
+    res.json(resp);  // Retorna a lista de categorias em JSON
+});
+
+app.get('/cadastrarCategoria', function (req, res) {
+  res.json({ mensagem: "Aqui deveria estar o formulário para cadastrar categoria" });
+});
+
+app.post('/cadastrarCategoria', function (req, res) {
+  const nova_categoria = new categoria(null, req.body.nome_categoria, req.body.is_ativo);
+
+  categoriaController.criarCategoria(nova_categoria)
+    .then(resp => {
+      res.json({ mensagem: resp });
+    })
+    .catch(err => {
+      res.status(500).json({ error: 'Erro ao cadastrar categoria', err });
+    });
+
+});
+
+app.post('/removerCategoria', function (req, res) {
+  const resultado = autoresController.removerCategoria(req.query.id_categoria);
+  resultado.then(resp => { res.redirect('/listarCategoria'); });
+});
+
+
+// livro
+app.get('/listarLivros', function (req, res) {
+    const resp = livro.listarLivros();
+    res.json(resp);  // Retorna a lista de livros em JSON
+});
+
+app.get('/cadastrarLivro', function (req, res) {
+  res.json({ mensagem: "Aqui deveria estar o formulário para cadastrar livro" });
+});
+
+app.post('/cadastrarLivro', function (req, res) {
+  const novo_livro = new livro(null, req.body.titulo, req.body.qtde_disponivel, req.body.isbn, req.body.edicao, req.body.caminho_foto_capa, req.body.is_ativo);
+
+  livroController.criarLivro(novo_livro)
+    .then(resp => {
+      res.json({ mensagem: resp });
+    })
+    .catch(err => {
+      res.status(500).json({ error: 'Erro ao cadastrar livro', err});
+    });
+
+});
+
+app.post('/removerLivro', function (req, res) {
+  const resultado = livroController.removerLivro(req.query.username);
+  resultado.then(resp => { res.redirect('/listarLivros'); });
+});
+
+
 
 app.listen(port, () => {
   console.log(`Servidor rodando na porta ${port}...`);
