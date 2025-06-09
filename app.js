@@ -14,12 +14,19 @@ const editoraController = require('./controller/editora.controller');
 const cursoController = require('./controller/curso.controller');
 const categoriaController = require('./controller/categoria.controller');
 const livroController = require('./controller/livro.controller');
+const emprestimoController = require('./controller/emprestimo.controller');
+const dividaController = require('./controller/divida.controller');
+const categoria_do_livroController = require('./controller/categoria_do_livro.controller');
+const cursos_dos_alunos = require('./controller/cursos_dos_usuarios.controller')
 const usuario = require('./entidades/usuario');
 const autores = require('./entidades/autores');
 const editora = require('./entidades/editora');
 const curso = require('./entidades/curso');
 const categoria = require('./entidades/categoria');
 const livro = require('./entidades/livro');
+const emprestimo = require('./entidades/emprestimo')
+const divida = require('./entidades/divida');
+const categoria_do_livro = require('./entidades/categoria_do_livro');
 
 //Configuração do body-parser
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -212,6 +219,128 @@ app.post('/removerLivro', function (req, res) {
   const resultado = livroController.removerLivro(req.query.username);
   resultado.then(resp => { res.redirect('/listarLivros'); });
 });
+
+
+
+//emprestimo
+app.get('/listar', function (req, res) {
+  const resp = usuarioController.listarEmprestimo();
+  res.json(resp);  // Retorna a lista de  em JSON
+});
+
+app.get('/cadastrarEmprestimo', function (req, res) {
+res.json({ mensagem: "Aqui deveria estar o formulário para cadastrar Emprestimo" });
+});
+
+app.post('/cadastrarEmprestimo', function (req, res) {
+const novo_emprestimo = new emprestimo(null, req.body.id_usuario, req.body.id_livro, req.body.data_emprestimo, req.body.data_devolucao, req.body.is_ativo);
+
+emprestimoController.criarEmprestimo(novo_emprestimo)
+  .then(resp => {
+    res.json({ mensagem: resp });
+  })
+  .catch(err => {
+    console.error("Erro ao cadastrar emprestimo:", err);
+    res.status(500).json({ error: 'Erro ao cadastrar emprestimo' });
+  });
+
+});
+
+app.post('/removerEmprestimo', function (req, res) {
+const resultado = emprestimoController.removerEmprestimo(req.query.id_emprestimo);
+resultado.then(resp => { res.redirect('/listar'); });
+});
+
+
+
+//divida
+app.get('/listar', function (req, res) {
+  const resp = usuarioController.listarDivida();
+  res.json(resp);  // Retorna a lista de  em JSON
+});
+
+app.get('/cadastrarDivida', function (req, res) {
+res.json({ mensagem: "Aqui deveria estar o formulário para cadastrar Divida" });
+});
+
+app.post('/cadastrarDivida', function (req, res) {
+const nova_divida = new divida(null, req.body.id_emprestimo, req.body.valor_multa, req.body.dia_atual, req.body.is_ativo);
+
+dividaController.criarDivida(nova_divida)
+  .then(resp => {
+    res.json({ mensagem: resp });
+  })
+  .catch(err => {
+    console.error("Erro ao cadastrar divida:", err);
+    res.status(500).json({ error: 'Erro ao cadastrar dividqa' });
+  });
+
+});
+
+app.post('/removerDivida', function (req, res) {
+  const resultado = dividaController.removerDivida(req.query.id_divida);
+  resultado.then(resp => { res.redirect('/listar'); });
+});
+
+
+//categoria do livro
+app.get('/listarCategoriasDoLivro', function (req, res) {
+  const resp = usuarioController.listarCategoriasDoLivro();
+  res.json(resp);  // Retorna a lista de categorias em JSON
+});
+
+app.get('/cadastrarCategoriaDoLivro', function (req, res) {
+  res.json({ mensagem: "Aqui deveria estar o formulário para cadastrar categoria do livro" });
+});
+
+app.post('/cadastrarCategoriaDoLivro', function (req, res) {
+const nova_categoria_do_livro = new categoria_do_livro(req.body.id_livro, req.body.id_categoria, req.body.is_ativo);
+
+categoria_do_livroController.criarCategoriaDoLivro(nova_categoria_do_livro)
+  .then(resp => {
+    res.json({ mensagem: resp });
+  })
+  .catch(err => {
+    res.status(500).json({ error: 'Erro ao cadastrar categoria do livro', err });
+  });
+
+});
+
+app.post('/removerCategoriaDoLivro', function (req, res) {
+  const resultado = categoria_do_livro.removerCategoriaDolLivro(req.query.id_categoria);
+  resultado.then(resp => { res.redirect('/listarCategoriasDoLivro'); });
+});
+
+//cursos dos usuarios
+
+app.get('/listaCursosDosAlunos', function (req, res) {
+  const resp = usuarioController.listaCursosDosAlunos();
+  res.json(resp);  // Retorna a lista de categorias em JSON
+});
+
+app.get('/cadastrarCategoriaDoLivro', function (req, res) {
+  res.json({ mensagem: "Aqui deveria estar o formulário para cadastrar categoria do livro" });
+});
+
+app.post('/cadastrarCategoriaDoLivro', function (req, res) {
+const nova_categoria_do_livro = new categoria_do_livro(req.body.id_livro, req.body.id_categoria, req.body.is_ativo);
+
+categoria_do_livroController.criarCategoriaDoLivro(nova_categoria_do_livro)
+  .then(resp => {
+    res.json({ mensagem: resp });
+  })
+  .catch(err => {
+    res.status(500).json({ error: 'Erro ao cadastrar categoria do livro', err });
+  });
+
+});
+
+app.post('/removerCategoriaDoLivro', function (req, res) {
+  const resultado = categoria_do_livro.removerCategoriaDolLivro(req.query.id_categoria);
+  resultado.then(resp => { res.redirect('/listarCategoriasDoLivro'); });
+});
+
+
 
 
 
