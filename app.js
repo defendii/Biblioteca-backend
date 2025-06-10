@@ -47,12 +47,14 @@ app.get('/', function (req, res) {
 
 // usuario
 app.get('/listarUsuarios', function (req, res) {
-    const resp = usuarioController.listarUsuarios();
-    res.json(resp);  // Retorna a lista de usuários em JSON
-});
-
-app.get('/cadastrarUsuario', function (req, res) {
-  res.json({ mensagem: "Aqui deveria estar o formulário para cadastrar usuário" });
+  usuarioController.listarUsuarios()
+  .then(resp => {
+    res.json(resp); 
+  })
+  .catch(erro => {
+    console.error("Erro ao listar usuários:", erro);
+    res.status(500).json({ erro: 'Erro ao buscar usuários' });
+  });
 });
 
 app.post('/cadastrarUsuario', function (req, res) {
@@ -76,8 +78,8 @@ app.post('/removerUsuario', function (req, res) {
 
 //autores
 app.get('/listarAutores', function (req, res) {
-    const resp = usuarioController.listarAutores();
-    res.json(resp);  // Retorna a lista de autores em JSON
+  const resp = usuarioController.listarAutores();
+  res.json(resp);  // Retorna a lista de autores em JSON
 });
 
 app.get('/cadastrarAutor', function (req, res) {
@@ -105,8 +107,8 @@ app.post('/removerAutores', function (req, res) {
 
 // editora
 app.get('/listarEditoras', function (req, res) {
-    const resp = usuarioController.listarEditoras();
-    res.json(resp);  // Retorna a lista de editoras em JSON
+  const resp = usuarioController.listarEditoras();
+  res.json(resp);  // Retorna a lista de editoras em JSON
 });
 
 app.get('/cadastrarEditora', function (req, res) {
@@ -135,8 +137,8 @@ app.post('/removerEditora', function (req, res) {
 
 // curso
 app.get('/listarCursos', function (req, res) {
-    const resp = usuarioController.listarCursos();
-    res.json(resp);  // Retorna a lista de cursos em JSON
+  const resp = usuarioController.listarCursos();
+  res.json(resp);  // Retorna a lista de cursos em JSON
 });
 
 app.get('/cadastrarCurso', function (req, res) {
@@ -165,8 +167,8 @@ app.post('/removerCurso', function (req, res) {
 
 //categoria
 app.get('/listarCategorias', function (req, res) {
-    const resp = usuarioController.listarCategorias();
-    res.json(resp);  // Retorna a lista de categorias em JSON
+  const resp = usuarioController.listarCategorias();
+  res.json(resp);  // Retorna a lista de categorias em JSON
 });
 
 app.get('/cadastrarCategoria', function (req, res) {
@@ -194,8 +196,8 @@ app.post('/removerCategoria', function (req, res) {
 
 // livro
 app.get('/listarLivros', function (req, res) {
-    const resp = livro.listarLivros();
-    res.json(resp);  // Retorna a lista de livros em JSON
+  const resp = livro.listarLivros();
+  res.json(resp);  // Retorna a lista de livros em JSON
 });
 
 app.get('/cadastrarLivro', function (req, res) {
@@ -210,7 +212,7 @@ app.post('/cadastrarLivro', function (req, res) {
       res.json({ mensagem: resp });
     })
     .catch(err => {
-      res.status(500).json({ error: 'Erro ao cadastrar livro', err});
+      res.status(500).json({ error: 'Erro ao cadastrar livro', err });
     });
 
 });
@@ -229,26 +231,26 @@ app.get('/listar', function (req, res) {
 });
 
 app.get('/cadastrarEmprestimo', function (req, res) {
-res.json({ mensagem: "Aqui deveria estar o formulário para cadastrar Emprestimo" });
+  res.json({ mensagem: "Aqui deveria estar o formulário para cadastrar Emprestimo" });
 });
 
 app.post('/cadastrarEmprestimo', function (req, res) {
-const novo_emprestimo = new emprestimo(null, req.body.id_usuario, req.body.id_livro, req.body.data_emprestimo, req.body.data_devolucao, req.body.is_ativo);
+  const novo_emprestimo = new emprestimo(null, req.body.id_usuario, req.body.id_livro, req.body.data_emprestimo, req.body.data_devolucao, req.body.is_ativo);
 
-emprestimoController.criarEmprestimo(novo_emprestimo)
-  .then(resp => {
-    res.json({ mensagem: resp });
-  })
-  .catch(err => {
-    console.error("Erro ao cadastrar emprestimo:", err);
-    res.status(500).json({ error: 'Erro ao cadastrar emprestimo' });
-  });
+  emprestimoController.criarEmprestimo(novo_emprestimo)
+    .then(resp => {
+      res.json({ mensagem: resp });
+    })
+    .catch(err => {
+      console.error("Erro ao cadastrar emprestimo:", err);
+      res.status(500).json({ error: 'Erro ao cadastrar emprestimo' });
+    });
 
 });
 
 app.post('/removerEmprestimo', function (req, res) {
-const resultado = emprestimoController.removerEmprestimo(req.query.id_emprestimo);
-resultado.then(resp => { res.redirect('/listar'); });
+  const resultado = emprestimoController.removerEmprestimo(req.query.id_emprestimo);
+  resultado.then(resp => { res.redirect('/listar'); });
 });
 
 
@@ -260,20 +262,20 @@ app.get('/listar', function (req, res) {
 });
 
 app.get('/cadastrarDivida', function (req, res) {
-res.json({ mensagem: "Aqui deveria estar o formulário para cadastrar Divida" });
+  res.json({ mensagem: "Aqui deveria estar o formulário para cadastrar Divida" });
 });
 
 app.post('/cadastrarDivida', function (req, res) {
-const nova_divida = new divida(null, req.body.id_emprestimo, req.body.valor_multa, req.body.dia_atual, req.body.is_ativo);
+  const nova_divida = new divida(null, req.body.id_emprestimo, req.body.valor_multa, req.body.dia_atual, req.body.is_ativo);
 
-dividaController.criarDivida(nova_divida)
-  .then(resp => {
-    res.json({ mensagem: resp });
-  })
-  .catch(err => {
-    console.error("Erro ao cadastrar divida:", err);
-    res.status(500).json({ error: 'Erro ao cadastrar dividqa' });
-  });
+  dividaController.criarDivida(nova_divida)
+    .then(resp => {
+      res.json({ mensagem: resp });
+    })
+    .catch(err => {
+      console.error("Erro ao cadastrar divida:", err);
+      res.status(500).json({ error: 'Erro ao cadastrar dividqa' });
+    });
 
 });
 
@@ -294,15 +296,15 @@ app.get('/cadastrarCategoriaDoLivro', function (req, res) {
 });
 
 app.post('/cadastrarCategoriaDoLivro', function (req, res) {
-const nova_categoria_do_livro = new categoria_do_livro(req.body.id_livro, req.body.id_categoria, req.body.is_ativo);
+  const nova_categoria_do_livro = new categoria_do_livro(req.body.id_livro, req.body.id_categoria, req.body.is_ativo);
 
-categoria_do_livroController.criarCategoriaDoLivro(nova_categoria_do_livro)
-  .then(resp => {
-    res.json({ mensagem: resp });
-  })
-  .catch(err => {
-    res.status(500).json({ error: 'Erro ao cadastrar categoria do livro', err });
-  });
+  categoria_do_livroController.criarCategoriaDoLivro(nova_categoria_do_livro)
+    .then(resp => {
+      res.json({ mensagem: resp });
+    })
+    .catch(err => {
+      res.status(500).json({ error: 'Erro ao cadastrar categoria do livro', err });
+    });
 
 });
 
@@ -323,15 +325,15 @@ app.get('/cadastrarCategoriaDoLivro', function (req, res) {
 });
 
 app.post('/cadastrarCategoriaDoLivro', function (req, res) {
-const nova_categoria_do_livro = new categoria_do_livro(req.body.id_livro, req.body.id_categoria, req.body.is_ativo);
+  const nova_categoria_do_livro = new categoria_do_livro(req.body.id_livro, req.body.id_categoria, req.body.is_ativo);
 
-categoria_do_livroController.criarCategoriaDoLivro(nova_categoria_do_livro)
-  .then(resp => {
-    res.json({ mensagem: resp });
-  })
-  .catch(err => {
-    res.status(500).json({ error: 'Erro ao cadastrar categoria do livro', err });
-  });
+  categoria_do_livroController.criarCategoriaDoLivro(nova_categoria_do_livro)
+    .then(resp => {
+      res.json({ mensagem: resp });
+    })
+    .catch(err => {
+      res.status(500).json({ error: 'Erro ao cadastrar categoria do livro', err });
+    });
 
 });
 
