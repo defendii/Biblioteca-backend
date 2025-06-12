@@ -33,6 +33,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.use(cors());
+app.use(express.json());
 
 //Configuração express-fileupload
 app.use(fileupload());
@@ -65,14 +66,46 @@ app.post('/cadastrarUsuario', function (req, res) {
       res.json({ mensagem: resp });
     })
     .catch(err => {
-      res.status(500).json({ error: 'Erro ao cadastrar usuário' });
+      res.status(500).json({ error: 'Erro ao cadastrar usuário', err });
     });
 
 });
 
 app.post('/removerUsuario', function (req, res) {
-  const resultado = usuarioController.removerUsuario(req.query.username);
-  resultado.then(resp => { res.redirect('/listarUsuarios'); });
+  const resultado = usuarioController.removerUsuario(req.body.id_usuario);
+  resultado
+    .then(resp => { 
+      res.redirect('/listarUsuarios'); 
+    })
+    .catch(err => {
+      console.error('Erro ao remover usuário:', err);
+      res.status(500).json({ error: 'Erro ao remover usuário', err });
+    });
+});
+
+app.put('/atualizarUsuario', function (req, res) {
+  const usuarioAtualizado = new usuario(
+    req.body.id_usuario,
+    req.body.nome,
+    req.body.registro_academico,
+    req.body.data_nascimento,
+    req.body.email,
+    req.body.telefone,
+    req.body.tipo,
+    req.body.is_ativo
+  );
+
+  usuarioController.atualizarUsuario(usuarioAtualizado)
+    .then(resp => {
+      if (!resp) {
+        return res.status(404).json({ mensagem: 'Usuário não encontrado para atualização.' });
+      }
+      res.json({ mensagem: 'Usuário atualizado com sucesso!', usuario: resp });
+    })
+    .catch(err => {
+      console.error('Erro ao atualizar usuário:', err);
+      res.status(500).json({ error: 'Erro ao atualizar usuário', err });
+    });
 });
 
 

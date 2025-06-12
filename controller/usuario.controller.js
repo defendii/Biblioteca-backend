@@ -28,3 +28,7 @@ exports.criarUsuario = async function(novo_usuario){
 exports.removerUsuario = async function(id_usuario){
     return await usuarioDAO.removerUsuarioPeloId_usuario(id_usuario);
 }
+
+exports.atualizarUsuario = async function(usuario) {
+    return await usuarioDAO.atualizarUsuarioPeloId(usuario);
+  }

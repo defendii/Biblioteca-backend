@@ -23,6 +23,14 @@ exports.adicionarCursoAoUsuario = async function(novo_curso){
     
 }
 
+exports.removerCursoPeloId_curso = async function(id_curso){
+    await db.query(
+        `DELETE FROM cursos_dos_usuarios
+         WHERE id_usuario = $1 AND id_curso = $2`,
+        [id_usuario, id_curso]
+    );
+    return "Curso removido do usuário com sucesso!";
+}
 //Função responsável por buscar um curso a partir de seu 'id_curso'
 // exports.procurarCursosDosUsuariosDoPeloId_curso = async function(id_curso){
 //     const {rows} = await db.query(
@@ -34,11 +42,3 @@ exports.adicionarCursoAoUsuario = async function(novo_curso){
 // }
 
 //Função responsável por remover um curso a partir de seu 'id_curso'
-exports.removerCursoPeloId_curso = async function(id_curso){
-    await db.query(
-        `DELETE FROM cursos_dos_usuarios
-         WHERE id_usuario = $1 AND id_curso = $2`,
-        [id_usuario, id_curso]
-    );
-    return "Curso removido do usuário com sucesso!";
-}
