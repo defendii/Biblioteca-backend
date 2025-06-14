@@ -31,4 +31,4 @@ exports.removerUsuario = async function(id_usuario){
 
 exports.atualizarUsuario = async function(usuario) {
     return await usuarioDAO.atualizarUsuarioPeloId(usuario);
-  }
+}

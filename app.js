@@ -75,7 +75,8 @@ app.post('/removerUsuario', function (req, res) {
   const resultado = usuarioController.removerUsuario(req.body.id_usuario);
   resultado
     .then(resp => { 
-      res.redirect('/listarUsuarios'); 
+      //res.redirect('/listarUsuarios'); 
+      res.status(200).json({ mensagem: 'Usuário removido com sucesso.' });
     })
     .catch(err => {
       console.error('Erro ao remover usuário:', err);
