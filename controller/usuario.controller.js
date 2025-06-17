@@ -1,5 +1,6 @@
 const usuarioDAO = require("../model/usuario.dao");
 const usuarioRN = require("../model/usuario.rn");
+const cursos_dos_usuarios = require("./cursos_dos_usuarios.controller")
 
 // Função responsável por listar todos os usuários
 exports.listarUsuarios = async function(){
@@ -31,4 +32,9 @@ exports.removerUsuario = async function(id_usuario){
 
 exports.atualizarUsuario = async function(usuario) {
     return await usuarioDAO.atualizarUsuarioPeloId(usuario);
-  }
+}
+
+exports.removerCursoDoUsuario = async function(id_usuario, id_curso) {
+    //console.log("Chamando removerCursoDoUsuario com:", id_usuario, id_curso);
+    return await cursos_dos_usuarios.removerCursoDoUsuario(id_usuario, id_curso);
+};

@@ -17,7 +17,7 @@ const livroController = require('./controller/livro.controller');
 const emprestimoController = require('./controller/emprestimo.controller');
 const dividaController = require('./controller/divida.controller');
 const categoria_do_livroController = require('./controller/categoria_do_livro.controller');
-const cursos_dos_alunos = require('./controller/cursos_dos_usuarios.controller')
+const cursosUsuariosController = require('./controller/cursos_dos_usuarios.controller');
 const usuario = require('./entidades/usuario');
 const autores = require('./entidades/autores');
 const editora = require('./entidades/editora');
@@ -348,34 +348,43 @@ app.post('/removerCategoriaDoLivro', function (req, res) {
 
 //cursos dos usuarios
 
-app.get('/listaCursosDosAlunos', function (req, res) {
-  const resp = usuarioController.listaCursosDosAlunos();
-  res.json(resp);  // Retorna a lista de categorias em JSON
+app.get('/listaCursosDosUsuarios/:id_usuario', async function (req, res) {
+  const id_usuario = parseInt(req.params.id_usuario);
+
+  try {
+    const cursos = await usuarioController.listarCursoDosUsuarios(id_usuario);
+    res.json(cursos);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao listar cursos do usuário', detalhes: err });
+  }
 });
 
-app.get('/cadastrarCategoriaDoLivro', function (req, res) {
-  res.json({ mensagem: "Aqui deveria estar o formulário para cadastrar categoria do livro" });
+app.post('/associarCursoAoUsuario', async (req, res) => {
+  try {
+    const { id_usuario, id_curso } = req.body;
+    const erros = await cursosUsuariosController.adicionarCursoAoUsuario(id_usuario, id_curso);
+
+    if (erros.length > 0) {
+      return res.status(400).json({ erro: "Erro ao associar curso ao usuário", detalhes: erros });
+    }
+
+    res.json({ mensagem: "Curso associado com sucesso!" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ erro: "Erro interno no servidor", detalhes: error.message });
+  }
 });
 
-app.post('/cadastrarCategoriaDoLivro', function (req, res) {
-  const nova_categoria_do_livro = new categoria_do_livro(req.body.id_livro, req.body.id_categoria, req.body.is_ativo);
+app.post('/removerCursoDoUsuario', async function (req, res) {
+  const { id_usuario, id_curso } = req.body;
 
-  categoria_do_livroController.criarCategoriaDoLivro(nova_categoria_do_livro)
-    .then(resp => {
-      res.json({ mensagem: resp });
-    })
-    .catch(err => {
-      res.status(500).json({ error: 'Erro ao cadastrar categoria do livro', err });
-    });
-
+  try {
+    const resultado = await usuarioController.removerCursoDoUsuario(id_usuario, id_curso);
+    res.json({ mensagem: resultado });
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao remover curso do usuário', detalhes: err });
+  }
 });
-
-app.post('/removerCategoriaDoLivro', function (req, res) {
-  const resultado = categoria_do_livro.removerCategoriaDolLivro(req.query.id_categoria);
-  resultado.then(resp => { res.redirect('/listarCategoriasDoLivro'); });
-});
-
-
 
 
 

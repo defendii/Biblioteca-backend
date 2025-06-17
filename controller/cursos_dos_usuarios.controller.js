@@ -1,11 +1,9 @@
-const autoresDoLivroDAO = require("../model/autores.dao");
+const cursos_dos_usuariosDAO = require("../model/cursos_dos_usuarios.dao");
 
-// Função responsável por listar todos os usuários
 exports.listarCursoDosUsuarios = async function(id_usuario){
-    return cursos_dos_usuariosDAO.listarCursoDosUsuarios(id_usuario);
+    return await cursos_dos_usuariosDAO.listarCursosDosUsuarios(id_usuario);
 }
 
-// Função responsável por criar um novo usuário
 exports.adicionarCursoAoUsuario = async function(id_usuario, id_curso){
     const erros = [];
 
@@ -24,7 +22,7 @@ exports.adicionarCursoAoUsuario = async function(id_usuario, id_curso){
     return [];
 }
 
-// Função responsável por remover um autor do livro pelo 'id_autor'
-exports.removerCursoDoUsario = async function(id_usuario, id_curso){
+exports.removerCursoDoUsuario = async function(id_usuario, id_curso){
+    //console.log("Controller: id_usuario =", id_usuario, "id_curso =", id_curso);
     return await cursos_dos_usuariosDAO.removerCursoPeloId_curso(id_usuario, id_curso);
 }
