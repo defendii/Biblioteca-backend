@@ -228,10 +228,18 @@ app.post('/removerCategoria', function (req, res) {
 
 
 // livro
-app.get('/listarLivros', function (req, res) {
-  const resp = livro.listarLivros();
-  res.json(resp);  // Retorna a lista de livros em JSON
+app.get('/listarLivros', async function (req, res) {
+  livroController.listarLivros()
+  .then(resp => {
+    res.json(resp); 
+  })
+  .catch(erro => {
+    console.error("Erro ao listar livros:", erro);
+    res.status(500).json({ erro: 'Erro ao buscar livros' });
+  });
 });
+
+
 
 app.get('/cadastrarLivro', function (req, res) {
   res.json({ mensagem: "Aqui deveria estar o formulário para cadastrar livro" });
