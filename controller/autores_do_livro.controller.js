@@ -1,29 +1,27 @@
-const autoresDoLivroDAO = require("../model/autores.dao");
+const autoresDAO = require("../model/autores.dao");
 
-// Função responsável por listar todos os usuários
-exports.listarAutoresDoLivro = async function(){
-    return autoresDAO.listarAutoresDoLivro();
+exports.listarAutoresDoLivroPorLivro = async function(id_livro) {
+  return autoresDAO.listarAutoresDoLivroPorLivro(id_livro);
 }
 
-// Função responsável por criar um novo usuário
-exports.criarAutorDoLivro = async function(novo_autorDoLivro){
+
+exports.adicionarAutorAoLivro = async function (novo_autorDoLivro) {
     const erros = [];
 
-    const user = await autoresDAO.procurarAutorPeloId_autorDoLivro(novo_autorDoLivro.id_autorDoLivro);
+    const associacoes = await autoresDAO.procurarAutorPeloId_autor(novo_autorDoLivro.id_livro, novo_autorDoLivro.id_autor);
 
-    if(user.length != 0){
-        erros.push("Erro: autor do livro já cadastrado!");
+    if (associacoes.length != 0) {
+        erros.push("Erro: autor já associado a este livro!");
     }
-    
-    if(erros.length > 0){
+
+    if (erros.length > 0) {
         return erros;
     }
 
-    await autoresDAO.criarAutorDoLivro(novo_autor);
+    await autoresDAO.adicionarAutorAoLivro(Qnovo_autorDoLivro);
     return [];
-}
+};
 
-// Função responsável por remover um autor do livro pelo 'id_autor'
-exports.removerAutor = async function(id_autor){
-    return await autoresDAO.removerAutorPeloId_autor(id_autor);
-}
+exports.removerAutor = async function (id_livro, id_autor) {
+    return await autoresDAO.removerAutorPeloId_autor(id_livro, id_autor);
+};

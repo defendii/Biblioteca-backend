@@ -18,6 +18,7 @@ const emprestimoController = require('./controller/emprestimo.controller');
 const dividaController = require('./controller/divida.controller');
 const categoria_do_livroController = require('./controller/categoria_do_livro.controller');
 const cursosUsuariosController = require('./controller/cursos_dos_usuarios.controller');
+const autoresDoLivro = require('./controller/autores_do_livro.controller')
 const usuario = require('./entidades/usuario');
 const autores = require('./entidades/autores');
 const editora = require('./entidades/editora');
@@ -393,6 +394,46 @@ app.post('/removerCursoDoUsuario', async function (req, res) {
     res.status(500).json({ erro: 'Erro ao remover curso do usuário', detalhes: err });
   }
 });
+
+//Autor do livro
+// Listar autores de um livro específico
+app.get('/listaAutoresDoLivro/:id_livro', async (req, res) => {
+  const id_livro = parseInt(req.params.id_livro);
+  try {
+    const autores = await autoresDoLivro.listarAutoresDoLivroPorLivro(id_livro);
+    res.json(autores);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao listar autores do livro', detalhes: err.message });
+  }
+});
+
+// Associar autor a livro
+app.post('/associarAutorAoLivro', async (req, res) => {
+   try {
+    const { id_livro, id_autor } = req.body;
+    const erros = await autoresDoLivro.adicionarAutorAoLivro({ id_livro, id_autor, is_ativo: 1 });
+
+    if (erros.length > 0) {
+      return res.status(400).json({ erro: 'Erro ao associar autor ao livro', detalhes: erros });
+    }
+
+    res.json({ mensagem: 'Autor associado ao livro com sucesso!' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ erro: 'Erro interno no servidor', detalhes: error.message });
+  }
+});
+
+app.post('/removerAutorDoLivro', async (req, res) => {
+  try {
+    const { id_livro, id_autor } = req.body;
+    await autoresDoLivro.removerAutor(id_livro, id_autor);
+    res.json({ mensagem: 'Associação removida com sucesso' });
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao remover associação', detalhes: err.message });
+  }
+});
+
 
 
 
