@@ -13,7 +13,7 @@ exports.adicionarAutorAoLivro = async function (novo_autorDoLivro) {
   );
 
   if (associacoes.length > 0) {
-    if (associacoes[0].is_ativo === 1) {
+    if (associacoes[0].is_ativo === true) {
       erros.push("Erro: autor já associado a este livro!");
       return erros;
     } else {
