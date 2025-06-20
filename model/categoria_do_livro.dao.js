@@ -1,38 +1,56 @@
 const db = require("../config/database");
 
-// Função responsável por listar todas as categorias do livro
-exports.listarCategoriaDoLivro = async function(){
-    const {rows} = await db.query("SELECT * FROM categoria_do_livro WHERE is_ativo = true");
-    return rows;
+exports.listarCategoriasDoLivro = async function(id_livro) {
+  const { rows } = await db.query(
+    `SELECT c.*
+     FROM categoria c
+     INNER JOIN categoria_do_livro cl ON c.id_categoria = cl.id_categoria
+     WHERE cl.id_livro = $1 AND cl.is_ativo = true`,
+    [id_livro]
+  );
+  return rows;
 }
 
-// Função responsável por criar uma nova categoria do livro
-exports.criarCategoriaDoLivro = async function(nova_categoria_do_livro){
-    const resposta = await db.query(
-        'INSERT INTO categoria_do_livro (id_livro, id_categoria, is_ativo) VALUES ($1, $2, $3)',
-        [nova_categoria_do_livro.id_livro, nova_categoria_do_livro.id_categoria, true]
-    );
-    
-    return "Categoria do livro cadastrado com sucesso!";
+exports.buscarVinculoCategoriaLivro = async function(id_livro, id_categoria) {
+  const { rows } = await db.query(
+    `SELECT * FROM categoria_do_livro
+     WHERE id_livro = $1 AND id_categoria = $2`,
+    [id_livro, id_categoria]
+  );
+  return rows[0];
 }
 
-//Função responsável por buscar uma categoria do livro a partir de seu 'id_categoria'
-exports.procurarCategoriaDoLivroPeloid_categoria = async function(id_categoria){
-    const {rows} = await db.query(
-       `SELECT livro.id, categoria.id AS categoria
-        FROM livro
-        JOIN categorias ON livros.categoria_id = categorias.id;`,
-        [id_livro], [id_categoria]
-    );
-    
-    return rows;
+exports.adicionarCategoriaAoLivro = async function(id_livro, id_categoria) {
+  const vinculo = await this.buscarVinculoCategoriaLivro(id_livro, id_categoria);
+
+  if (vinculo) {
+    if (!vinculo.is_ativo) {
+      await db.query(
+        `UPDATE categoria_do_livro
+         SET is_ativo = true
+         WHERE id_livro = $1 AND id_categoria = $2`,
+        [id_livro, id_categoria]
+      );
+      return "Categoria reativada com sucesso!";
+    } else {
+      throw new Error("Erro: categoria já associada a este livro!");
+    }
+  }
+
+  await db.query(
+    `INSERT INTO categoria_do_livro (id_livro, id_categoria, is_ativo)
+     VALUES ($1, $2, true)`,
+    [id_livro, id_categoria]
+  );
+  return "Categoria associada ao livro com sucesso!";
 }
 
-//Função responsável por remover um autor a partir de seu 'id_autor'
-exports.removerCategoriaDoLivroPeloId_categoria_do_livro = async function(id_autor){
-    const {rows} = await db.query(
-        `UPDATE categoria_do_livro SET is_ativo = false WHERE id_categoria_do_livro = '${id_categoria_do_livro}'`
-    );
-    
-    return rows;
+exports.removerCategoriaDoLivro = async function(id_livro, id_categoria) {
+  await db.query(
+    `UPDATE categoria_do_livro
+     SET is_ativo = false
+     WHERE id_livro = $1 AND id_categoria = $2`,
+    [id_livro, id_categoria]
+  );
+  return "Categoria removida do livro com sucesso!";
 }

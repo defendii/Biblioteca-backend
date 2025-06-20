@@ -1,29 +1,26 @@
-const categoria_do_livroDAO = require("../model/categoria_do_livro.dao");
+const categoriasDAO = require("../model/categoria_do_livro.dao");
 
-// Função responsável por listar todas as categorias
-exports.listarCategoriasDoLivro = async function(){
-    return categoria_do_livroDAO.listarCategoriasDoLivro();
+exports.listarCategoriasDoLivro = async function(id_livro) {
+  return await categoriasDAO.listarCategoriasDoLivro(id_livro);
 }
 
-// Função responsável por criar uma nova categoria
-exports.criarCategoriaDoLivro = async function(nova_categoria_do_livro){
-    const erros = [];
+exports.adicionarCategoriaAoLivro = async function({ id_livro, id_categoria }) {
+  const erros = [];
 
-    const user = await categoria_do_livroDAO.procurarCategoriaDoLivroPeloId_categoria_do_livro(nova_categoria_do_livro.id_categoria_do_livro);
+  const vinculo = await categoriasDAO.buscarVinculoCategoriaLivro(id_livro, id_categoria);
 
-    if(user.length != 0){
-        erros.push("Erro: categoria do livro já cadastrado!");
-    }
-    
-    if(erros.length > 0){
-        return erros;
-    }
+  if (vinculo && vinculo.is_ativo === true) {
+    erros.push("Erro: categoria já associada a este livro!");
+  }
 
-    await categoria_do_livroDAO.criarCategoriaDoLivro(nova_categoria_do_livro);
-    return [];
+  if (erros.length > 0) {
+    return erros;
+  }
+
+  await categoriasDAO.adicionarCategoriaAoLivro(id_livro, id_categoria);
+  return [];
 }
 
-// Função responsável por remover um categoria pelo 'id_categoria'
-exports.removerCategoriaDoLivro = async function(id_categoria_do_livro){
-    return await categoria_do_livroDAO.removerCategoriaDoLivroPeloId_categoria_do_livro(id_categoria_do_livro);
+exports.removerCategoriaDoLivro = async function(id_livro, id_categoria) {
+  return await categoriasDAO.removerCategoriaDoLivro(id_livro, id_categoria);
 }
