@@ -5,7 +5,6 @@ const bodyParser = require('body-parser');
 const fileupload = require('express-fileupload');
 const cors = require('cors');
 
-//Adicionar Bootstrap
 app.use('/bootstrap', express.static('./node_modules/bootstrap/dist'))
 
 const usuarioController = require('./controller/usuario.controller');
@@ -51,7 +50,7 @@ app.get('/', function (req, res) {
 app.get('/listarUsuarios', function (req, res) {
   usuarioController.listarUsuarios()
   .then(resp => {
-    res.json(resp); 
+    res.json(resp);
   })
   .catch(erro => {
     console.error("Erro ao listar usuários:", erro);
@@ -75,8 +74,8 @@ app.post('/cadastrarUsuario', function (req, res) {
 app.post('/removerUsuario', function (req, res) {
   const resultado = usuarioController.removerUsuario(req.body.id_usuario);
   resultado
-    .then(resp => { 
-      res.redirect('/listarUsuarios'); 
+    .then(resp => {
+      res.redirect('/listarUsuarios');
     })
     .catch(err => {
       console.error('Erro ao remover usuário:', err);
@@ -232,7 +231,7 @@ app.post('/removerCategoria', function (req, res) {
 app.get('/listarLivros', async function (req, res) {
   livroController.listarLivros()
   .then(resp => {
-    res.json(resp); 
+    res.json(resp);
   })
   .catch(erro => {
     console.error("Erro ao listar livros:", erro);
@@ -247,7 +246,16 @@ app.get('/cadastrarLivro', function (req, res) {
 });
 
 app.post('/cadastrarLivro', function (req, res) {
-  const novo_livro = new livro(null, req.body.titulo, req.body.qtde_disponivel, req.body.isbn, req.body.edicao, req.body.caminho_foto_capa, req.body.is_ativo);
+  const imagem = req.files?.imagem
+
+  const novo_livro = {
+    titulo: req.body.titulo,
+    qtde_disponivel: req.body.qtde_disponivel,
+    isbn: req.body.isbn,
+    edicao: req.body.edicao,
+    is_ativo: req.body.is_ativo,
+    imagem
+  };
 
   livroController.criarLivro(novo_livro)
     .then(resp => {
