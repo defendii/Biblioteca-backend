@@ -7,10 +7,9 @@ exports.listarCursoDosUsuarios = async function(id_usuario){
 exports.adicionarCursoAoUsuario = async function(id_usuario, id_curso){
     const erros = [];
 
-    const cursos = await cursos_dos_usuariosDAO.listarCursosDosUsuarios(id_usuario);
-    const jaCadastrado = cursos.some(curso => curso.id_curso === id_curso);
+    const vinculo = await cursos_dos_usuariosDAO.buscarVinculoCursoUsuario(id_usuario, id_curso);
 
-    if (jaCadastrado) {
+    if (vinculo && vinculo.is_ativo === true) {
         erros.push("Erro: curso já associado a este usuário!");
     }
 
@@ -23,6 +22,5 @@ exports.adicionarCursoAoUsuario = async function(id_usuario, id_curso){
 }
 
 exports.removerCursoDoUsuario = async function(id_usuario, id_curso){
-    //console.log("Controller: id_usuario =", id_usuario, "id_curso =", id_curso);
     return await cursos_dos_usuariosDAO.removerCursoPeloId_curso(id_usuario, id_curso);
 }
