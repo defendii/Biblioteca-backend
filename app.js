@@ -18,6 +18,7 @@ const dividaController = require('./controller/divida.controller');
 const categoria_do_livroController = require('./controller/categoria_do_livro.controller');
 const cursosUsuariosController = require('./controller/cursos_dos_usuarios.controller');
 const autoresDoLivro = require('./controller/autores_do_livro.controller')
+const editoraDoLivro = require('./controller/editora_do_livro.controller')
 const usuario = require('./entidades/usuario');
 const autores = require('./entidades/autores');
 const editora = require('./entidades/editora');
@@ -416,7 +417,7 @@ app.get('/listaAutoresDoLivro/:id_livro', async (req, res) => {
 });
 
 
-app.post('/adicionarAutorAoLivro', async (req, res) => {
+app.post('/associarAutorAoLivro', async (req, res) => {
   try {
     const { id_livro, id_autor } = req.body;
     const erros = await autoresDoLivro.adicionarAutorAoLivro({ id_livro, id_autor, is_ativo: 1 });
@@ -443,6 +444,38 @@ app.post('/removerAutorDoLivro', async (req, res) => {
   }
 });
 
+//Editora do Livro 
+app.get('/listarEditoraDoLivro/:id_livro', async (req, res) => {
+  try {
+    const id_livro = parseInt(req.params.id_livro);
+    const editora = await editoraDoLivro.listarEditoraDoLivro(id_livro);
+    res.json(editora);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ erro: 'Erro ao listar editora do livro', detalhes: error.message });
+  }
+});
+
+app.post('/associarEditoraAoLivro', async (req, res) => {
+  try {
+    const { id_livro, id_editora } = req.body;
+    await editoraDoLivro.associarEditoraAoLivro({ id_livro, id_editora });
+    res.json({ mensagem: 'Editora associada ao livro com sucesso!' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ erro: 'Erro ao associar editora ao livro', detalhes: error.message });
+  }
+});
+
+app.post('/removerEditoraDoLivro', async (req, res) => {
+  try {
+    const { id_livro } = req.body;
+    const resultado = await editoraDoLivro.removerEditoraDoLivro(id_livro);
+    res.json({ mensagem: resultado });
+  } catch (error) {
+    res.status(500).json({ erro: 'Erro ao remover editora do livro', detalhes: error.message });
+  }
+});
 
 
 app.listen(port, () => {
