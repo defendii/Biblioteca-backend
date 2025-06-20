@@ -404,20 +404,20 @@ app.post('/removerCursoDoUsuario', async function (req, res) {
 });
 
 //Autor do livro
-// Listar autores de um livro específico
 app.get('/listaAutoresDoLivro/:id_livro', async (req, res) => {
-  const id_livro = parseInt(req.params.id_livro);
   try {
+    const id_livro = parseInt(req.params.id_livro);
     const autores = await autoresDoLivro.listarAutoresDoLivroPorLivro(id_livro);
     res.json(autores);
-  } catch (err) {
-    res.status(500).json({ erro: 'Erro ao listar autores do livro', detalhes: err.message });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ erro: 'Erro ao listar autores do livro', detalhes: error.message });
   }
 });
 
-// Associar autor a livro
-app.post('/associarAutorAoLivro', async (req, res) => {
-   try {
+
+app.post('/adicionarAutorAoLivro', async (req, res) => {
+  try {
     const { id_livro, id_autor } = req.body;
     const erros = await autoresDoLivro.adicionarAutorAoLivro({ id_livro, id_autor, is_ativo: 1 });
 
@@ -432,6 +432,7 @@ app.post('/associarAutorAoLivro', async (req, res) => {
   }
 });
 
+
 app.post('/removerAutorDoLivro', async (req, res) => {
   try {
     const { id_livro, id_autor } = req.body;
@@ -441,7 +442,6 @@ app.post('/removerAutorDoLivro', async (req, res) => {
     res.status(500).json({ erro: 'Erro ao remover associação', detalhes: err.message });
   }
 });
-
 
 
 
