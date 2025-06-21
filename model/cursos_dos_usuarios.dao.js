@@ -18,7 +18,7 @@ exports.adicionarCursoAoUsuario = async function (id_usuario, id_curso) {
     if (vinculo) {
         if (vinculo.is_ativo === false || vinculo.is_ativo === null) {
             await db.query(
-                `UPDATE cursos_dos_usuarios 
+                `UPDATE curso_dos_usuarios 
                  SET is_ativo = true 
                  WHERE id_usuario = $1 AND id_curso = $2`,
                 [id_usuario, id_curso]

@@ -2,11 +2,17 @@ const usuarioDAO = require("../model/usuario.dao");
 const usuarioRN = require("../model/usuario.rn");
 const cursos_dos_usuarios = require("./cursos_dos_usuarios.controller")
 
-// Função responsável por listar todos os usuários
-exports.listarUsuarios = async function(){
-    return usuarioDAO.listarUsuarios();
-}
+exports.listarUsuarios = async function () {
+  const usuarios = await usuarioDAO.listarUsuarios();
 
+  // Para cada usuário, buscar cursos associados e inserir na propriedade "cursos"
+  for (const usuario of usuarios) {
+    const cursos = await usuarioDAO.listarCursosDoUsuario(usuario.id_usuario);
+    usuario.cursos = cursos;
+  }
+
+  return usuarios;
+};
 // Função responsável por criar um novo usuário
 exports.criarUsuario = async function(novo_usuario){
     const erros = [];

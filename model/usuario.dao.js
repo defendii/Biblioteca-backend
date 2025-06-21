@@ -64,3 +64,15 @@ exports.atualizarUsuarioPeloId = async function (usuario) {
 
     return rows[0]; 
 }
+
+// Busca cursos associados a um usuário pelo id_usuario
+exports.listarCursosDoUsuario = async function (id_usuario) {
+  const query = `
+    SELECT c.id_curso, c.nome
+    FROM cursos_dos_usuarios cu
+    JOIN curso c ON cu.id_curso = c.id_curso
+    WHERE cu.id_usuario = $1 AND cu.is_ativo = true;
+  `;
+  const { rows } = await db.query(query, [id_usuario]);
+  return rows;
+};

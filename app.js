@@ -171,9 +171,14 @@ app.post('/removerEditora', function (req, res) {
 
 
 // curso
-app.get('/listarCursos', function (req, res) {
-  const resp = usuarioController.listarCursos();
-  res.json(resp);  // Retorna a lista de cursos em JSON
+app.get('/listarCursos', async function (req, res) {
+  try {
+    const resp = await cursoController.listarcursos();  // Atenção no nome da função (case sensitive)
+    res.json(resp);
+  } catch (error) {
+    console.error("Erro ao listar cursos:", error);
+    res.status(500).json({ error: "Erro ao listar cursos" });
+  }
 });
 
 app.get('/cadastrarCurso', function (req, res) {
@@ -338,16 +343,16 @@ app.post('/removerDivida', function (req, res) {
 
 //cursos dos usuarios
 
-app.get('/listaCursosDosUsuarios/:id_usuario', async function (req, res) {
-  const id_usuario = parseInt(req.params.id_usuario);
+  app.get('/listaCursosDosUsuarios/:id_usuario', async function (req, res) {
+    const id_usuario = parseInt(req.params.id_usuario);
 
-  try {
-    const cursos = await usuarioController.listarCursoDosUsuarios(id_usuario);
-    res.json(cursos);
-  } catch (err) {
-    res.status(500).json({ erro: 'Erro ao listar cursos do usuário', detalhes: err });
-  }
-});
+    try {
+      const cursos = await usuarioController.listarCursoDosUsuarios(id_usuario);
+      res.json(cursos);
+    } catch (err) {
+      res.status(500).json({ erro: 'Erro ao listar cursos do usuário', detalhes: err });
+    }
+  });
 
 app.post('/associarCursoAoUsuario', async (req, res) => {
   try {
