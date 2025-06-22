@@ -19,17 +19,15 @@ exports.criarUsuario = async function(novo_usuario){
 
     const user = await usuarioDAO.procurarUsuarioPeloRegistro_academico(novo_usuario.registro_academico);
 
-    if(user.length != 0){
+    if (user.length !== 0){
         erros.push("Erro: registro acadêmico já cadastrado!");
-    }
-    
-    if(erros.length > 0){
-        return erros;
+        return { erros };
     }
 
-    await usuarioDAO.criarUsuario(novo_usuario);
-    return [];
-}
+    const resultado = await usuarioDAO.criarUsuario(novo_usuario);
+
+    return { id_usuario: resultado.id_usuario };
+};
 
 // Função responsável por remover um usuário pelo 'id_usuario'
 exports.removerUsuario = async function(id_usuario){

@@ -59,18 +59,36 @@ app.get('/listarUsuarios', function (req, res) {
   });
 });
 
-app.post('/cadastrarUsuario', function (req, res) {
-  const novo_usuario = new usuario(null, req.body.nome, req.body.registro_academico, req.body.data_nascimento, req.body.email, req.body.telefone, req.body.tipo, req.body.is_ativo);
+// app.post('/cadastrarUsuario', function (req, res) {
+app.post('/cadastrarUsuario', async function (req, res) {
+  const novo_usuario = new usuario(
+    null,
+    req.body.nome,
+    req.body.registro_academico,
+    req.body.data_nascimento,
+    req.body.email,
+    req.body.telefone,
+    req.body.tipo,
+    req.body.is_ativo
+  );
 
-  usuarioController.criarUsuario(novo_usuario)
-    .then(resp => {
-      res.json({ mensagem: resp });
-    })
-    .catch(err => {
-      res.status(500).json({ error: 'Erro ao cadastrar usuário', err });
+  try {
+    const usuarioCriado = await usuarioController.criarUsuario(novo_usuario);
+
+    res.json({
+      mensagem: "Usuário cadastrado com sucesso!",
+      id_usuario: usuarioCriado.id_usuario
     });
 
+  } catch (err) {
+    console.error("Erro ao cadastrar usuário:", err);
+    res.status(500).json({
+      error: 'Erro ao cadastrar usuário',
+      detalhes: err.message
+    });
+  }
 });
+
 
 app.post('/removerUsuario', function (req, res) {
   const resultado = usuarioController.removerUsuario(req.body.id_usuario);

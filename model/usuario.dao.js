@@ -8,12 +8,21 @@ exports.listarUsuarios = async function () {
 
 // Função responsável por criar um novo usuário
 exports.criarUsuario = async function (novo_usuario) {
-    const resposta = await db.query(
-        'INSERT INTO usuario (nome, registro_academico, data_nascimento, email, telefone, tipo, is_ativo) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-        [novo_usuario.nome, novo_usuario.registro_academico, novo_usuario.data_nascimento, novo_usuario.email, novo_usuario.telefone, novo_usuario.tipo, true]
+    const { rows } = await db.query(
+        `INSERT INTO usuario (nome, registro_academico, data_nascimento, email, telefone, tipo, is_ativo)
+   VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING id_usuario`,
+        [
+            novo_usuario.nome,
+            novo_usuario.registro_academico,
+            novo_usuario.data_nascimento,
+            novo_usuario.email,
+            novo_usuario.telefone,
+            novo_usuario.tipo,
+            true
+        ]
     );
 
-    return "Usuário cadastrado com sucesso!";
+    return rows[0];
 }
 
 //Função responsável por buscar um usuário a partir de seu 'registro_academico'
@@ -62,17 +71,17 @@ exports.atualizarUsuarioPeloId = async function (usuario) {
 
     const { rows } = await db.query(query, values);
 
-    return rows[0]; 
+    return rows[0];
 }
 
 // Busca cursos associados a um usuário pelo id_usuario
 exports.listarCursosDoUsuario = async function (id_usuario) {
-  const query = `
+    const query = `
     SELECT c.id_curso, c.nome
     FROM cursos_dos_usuarios cu
     JOIN curso c ON cu.id_curso = c.id_curso
     WHERE cu.id_usuario = $1 AND cu.is_ativo = true;
   `;
-  const { rows } = await db.query(query, [id_usuario]);
-  return rows;
+    const { rows } = await db.query(query, [id_usuario]);
+    return rows;
 };
