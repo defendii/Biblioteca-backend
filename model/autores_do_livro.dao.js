@@ -2,7 +2,10 @@ const db = require("../config/database");
 
 exports.listarAutoresDoLivroPorLivro = async function(id_livro) {
   const { rows } = await db.query(
-    'SELECT * FROM autores_do_livro WHERE id_livro = $1 AND is_ativo = true',
+    `SELECT a.id_autor, a.nome_autor, a.is_ativo
+     FROM autores a
+     INNER JOIN autores_do_livro adl ON a.id_autor = adl.id_autor
+     WHERE adl.id_livro = $1 AND adl.is_ativo = true`,
     [id_livro]
   );
   return rows;

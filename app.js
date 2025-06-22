@@ -15,7 +15,6 @@ const categoriaController = require('./controller/categoria.controller');
 const livroController = require('./controller/livro.controller');
 const emprestimoController = require('./controller/emprestimo.controller');
 const dividaController = require('./controller/divida.controller');
-//const categoria_do_livroController = require('./controller/categoria_do_livro.controller');
 const cursosUsuariosController = require('./controller/cursos_dos_usuarios.controller');
 const autoresDoLivro = require('./controller/autores_do_livro.controller')
 const editoraDoLivro = require('./controller/editora_do_livro.controller')
@@ -235,6 +234,8 @@ app.post('/removerCategoria', function (req, res) {
 
 
 // livro
+app.get("/livrosCompletos", livroController.listarLivrosComAssociacoes);
+
 app.get('/listarLivros', async function (req, res) {
   livroController.listarLivros()
   .then(resp => {

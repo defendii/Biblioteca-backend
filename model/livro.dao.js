@@ -11,7 +11,8 @@ exports.criarLivro = async function(novo_livro){
     const extensao_arquivo = novo_livro.imagem.name.split(".").pop();
 
     const resposta = await db.query(
-        'INSERT INTO livro (titulo, qtde_disponivel, isbn, edicao, caminho_foto_capa, is_ativo) VALUES ($1, $2, $3, $4, $5, $6)',
+        `INSERT INTO livro (titulo, qtde_disponivel, isbn, edicao, caminho_foto_capa, is_ativo)
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id_livro`,
         [novo_livro.titulo, novo_livro.qtde_disponivel, novo_livro.isbn, novo_livro.edicao, extensao_arquivo, true]
     );
 

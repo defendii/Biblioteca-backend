@@ -1,4 +1,7 @@
 const livroDAO = require("../model/livro.dao");
+const categoriaDAO = require("../model/categoria_do_livro.dao")
+const autorDAO = require("../model/autores_do_livro.dao")
+const editoraDAO = require("../model/editora_do_livro.dao")
 const path = require('path');
 const fs = require('fs');
 const { error } = require("console")
@@ -37,3 +40,30 @@ exports.criarLivro = async function(novo_livro){
 exports.removerLivro = async function(id_livro){
     return await livroDAO.removerLivroPeloId_livro(id_livro);
 }
+
+exports.listarLivrosComAssociacoes = async function (req, res) {
+  try {
+    const livros = await livroDAO.listarLivros(); // já existente
+
+    const livrosCompletos = await Promise.all(
+      livros.map(async (livro) => {
+        const autores = await autorDAO.listarAutoresDoLivroPorLivro(livro.id_livro);
+        const categorias = await categoriaDAO.listarCategoriasDoLivro(livro.id_livro);
+        const editora = await editoraDAO.listarEditoraDoLivro(livro.id_livro);
+
+        return {
+          ...livro,
+          autores,
+          categorias,
+          editora,
+        };
+      })
+    );
+
+    res.json(livrosCompletos);
+  } catch (erro) {
+    console.error("Erro ao listar livros com associações:", erro);
+    res.status(500).json({ erro: "Erro ao listar livros com associações" });
+  }
+  
+};
