@@ -1,9 +1,10 @@
 const emprestimoDAO = require("../model/emprestimo.dao");
 
 // Função responsável por listar todos os emprestimos
-exports.listarEmprestimos = async function(){
-    return emprestimoDAO.listarEmprestimos();
-}
+exports.listarEmprestimo = async function () {
+    return await emprestimoDAO.listarEmprestimo
+    ();
+  };
 
 // Função responsável por criar um novo emprestimo
 exports.criarEmprestimo = async function(novo_emprestimo){

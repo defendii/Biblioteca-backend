@@ -31,7 +31,9 @@ exports.criarLivro = async function(novo_livro){
 
     extensao_arquivo = novo_livro.imagem.name.split(".");
 
-    novo_livro.imagem.mv(caminho+id_livro+'.'+extensao_arquivo.pop());
+    await novo_livro.imagem.mv(caminho + id_livro + '.' + extensao, (err) => {
+      if (err) console.error("Erro ao salvar imagem:", err);
+    });
 
     return true;;
 }

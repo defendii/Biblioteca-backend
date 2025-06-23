@@ -50,13 +50,13 @@ app.get('/', function (req, res) {
 // usuario
 app.get('/listarUsuarios', function (req, res) {
   usuarioController.listarUsuarios()
-  .then(resp => {
-    res.json(resp);
-  })
-  .catch(erro => {
-    console.error("Erro ao listar usuários:", erro);
-    res.status(500).json({ erro: 'Erro ao buscar usuários' });
-  });
+    .then(resp => {
+      res.json(resp);
+    })
+    .catch(erro => {
+      console.error("Erro ao listar usuários:", erro);
+      res.status(500).json({ erro: 'Erro ao buscar usuários' });
+    });
 });
 
 // app.post('/cadastrarUsuario', function (req, res) {
@@ -134,10 +134,6 @@ app.get('/listarAutores', function (req, res) {
   res.json(resp);  // Retorna a lista de autores em JSON
 });
 
-app.get('/cadastrarAutor', function (req, res) {
-  res.json({ mensagem: "Aqui deveria estar o formulário para cadastrar autor" });
-});
-
 app.post('/cadastrarAutor', function (req, res) {
   const novo_autor = new autores(null, req.body.nome_autor, req.body.is_ativo);
 
@@ -163,10 +159,6 @@ app.get('/listarEditoras', function (req, res) {
   res.json(resp);  // Retorna a lista de editoras em JSON
 });
 
-app.get('/cadastrarEditora', function (req, res) {
-  res.json({ mensagem: "Aqui deveria estar o formulário para cadastrar editora" });
-});
-
 app.post('/cadastrarEditora', function (req, res) {
   const novo_editora = new editora(null, req.body.nome, req.body.is_ativo);
 
@@ -190,16 +182,12 @@ app.post('/removerEditora', function (req, res) {
 // curso
 app.get('/listarCursos', async function (req, res) {
   try {
-    const resp = await cursoController.listarcursos();  // Atenção no nome da função (case sensitive)
+    const resp = await cursoController.listarcursos();
     res.json(resp);
   } catch (error) {
     console.error("Erro ao listar cursos:", error);
     res.status(500).json({ error: "Erro ao listar cursos" });
   }
-});
-
-app.get('/cadastrarCurso', function (req, res) {
-  res.json({ mensagem: "Aqui deveria estar o formulário para cadastrar curso" });
 });
 
 app.post('/cadastrarCurso', function (req, res) {
@@ -228,10 +216,6 @@ app.get('/listarCategorias', function (req, res) {
   res.json(resp);  // Retorna a lista de categorias em JSON
 });
 
-app.get('/cadastrarCategoria', function (req, res) {
-  res.json({ mensagem: "Aqui deveria estar o formulário para cadastrar categoria" });
-});
-
 app.post('/cadastrarCategoria', function (req, res) {
   const nova_categoria = new categoria(null, req.body.nome_categoria, req.body.is_ativo);
 
@@ -256,19 +240,13 @@ app.get("/livrosCompletos", livroController.listarLivrosComAssociacoes);
 
 app.get('/listarLivros', async function (req, res) {
   livroController.listarLivros()
-  .then(resp => {
-    res.json(resp);
-  })
-  .catch(erro => {
-    console.error("Erro ao listar livros:", erro);
-    res.status(500).json({ erro: 'Erro ao buscar livros' });
-  });
-});
-
-
-
-app.get('/cadastrarLivro', function (req, res) {
-  res.json({ mensagem: "Aqui deveria estar o formulário para cadastrar livro" });
+    .then(resp => {
+      res.json(resp);
+    })
+    .catch(erro => {
+      console.error("Erro ao listar livros:", erro);
+      res.status(500).json({ erro: 'Erro ao buscar livros' });
+    });
 });
 
 app.post('/cadastrarLivro', function (req, res) {
@@ -301,15 +279,16 @@ app.post('/removerLivro', function (req, res) {
 
 
 //emprestimo
-app.get('/listar', function (req, res) {
-  const resp = usuarioController.listarEmprestimo();
-  res.json(resp);  // Retorna a lista de  em JSON
-});
 
-app.get('/cadastrarEmprestimo', function (req, res) {
-  res.json({ mensagem: "Aqui deveria estar o formulário para cadastrar Emprestimo" });
+app.get('/listarEmprestimo', async function (req, res) {
+  try {
+    const emprestimos = await emprestimoController.listarEmprestimo();
+    res.json(emprestimos);
+  } catch (erro) {
+    console.error("Erro ao listar empréstimos:", erro);
+    res.status(500).json({ erro: 'Erro ao buscar empréstimos' });
+  }
 });
-
 app.post('/cadastrarEmprestimo', function (req, res) {
   const novo_emprestimo = new emprestimo(null, req.body.id_usuario, req.body.id_livro, req.body.data_emprestimo, req.body.data_devolucao, req.body.is_ativo);
 
@@ -324,21 +303,25 @@ app.post('/cadastrarEmprestimo', function (req, res) {
 
 });
 
-app.post('/removerEmprestimo', function (req, res) {
-  const resultado = emprestimoController.removerEmprestimo(req.query.id_emprestimo);
-  resultado.then(resp => { res.redirect('/listar'); });
+app.post("/removerEmprestimo", async function (req, res) {
+  const { id_emprestimo } = req.body;
+
+  try {
+    const resultado = await emprestimoController.removerEmprestimo(id_emprestimo);
+    res.json({ mensagem: "Empréstimo desativado com sucesso!", resultado });
+  } catch (err) {
+    console.error("Erro ao remover empréstimo:", err);
+    res.status(500).json({ erro: "Erro ao remover empréstimo", detalhes: err.message });
+  }
 });
+
 
 
 
 //divida
-app.get('/listar', function (req, res) {
+app.get('/listarDivida', function (req, res) {
   const resp = usuarioController.listarDivida();
   res.json(resp);  // Retorna a lista de  em JSON
-});
-
-app.get('/cadastrarDivida', function (req, res) {
-  res.json({ mensagem: "Aqui deveria estar o formulário para cadastrar Divida" });
 });
 
 app.post('/cadastrarDivida', function (req, res) {
@@ -362,16 +345,16 @@ app.post('/removerDivida', function (req, res) {
 
 //cursos dos usuarios
 
-  app.get('/listaCursosDosUsuarios/:id_usuario', async function (req, res) {
-    const id_usuario = parseInt(req.params.id_usuario);
+app.get('/listaCursosDosUsuarios/:id_usuario', async function (req, res) {
+  const id_usuario = parseInt(req.params.id_usuario);
 
-    try {
-      const cursos = await usuarioController.listarCursoDosUsuarios(id_usuario);
-      res.json(cursos);
-    } catch (err) {
-      res.status(500).json({ erro: 'Erro ao listar cursos do usuário', detalhes: err });
-    }
-  });
+  try {
+    const cursos = await usuarioController.listarCursoDosUsuarios(id_usuario);
+    res.json(cursos);
+  } catch (err) {
+    res.status(500).json({ erro: 'Erro ao listar cursos do usuário', detalhes: err });
+  }
+});
 
 app.post('/associarCursoAoUsuario', async (req, res) => {
   try {
