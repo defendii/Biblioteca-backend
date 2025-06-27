@@ -258,7 +258,7 @@ app.post('/cadastrarLivro', function (req, res) {
     isbn: req.body.isbn,
     edicao: req.body.edicao,
     is_ativo: req.body.is_ativo,
-    imagem
+    imagem: imagem
   };
 
   livroController.criarLivro(novo_livro)
@@ -423,7 +423,7 @@ app.post('/removerAutorDoLivro', async (req, res) => {
   }
 });
 
-//Editora do Livro 
+//Editora do Livro
 app.get('/listarEditoraDoLivro/:id_livro', async (req, res) => {
   try {
     const id_livro = parseInt(req.params.id_livro);

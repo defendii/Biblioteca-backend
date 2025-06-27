@@ -11,11 +11,17 @@ exports.listarLivros = async function(){
     return livroDAO.listarLivros();
 }
 
+function inserirImagem(novo_livro){
+
+}
+
 
 // Função responsável por criar um novo livro
 exports.criarLivro = async function(novo_livro){
     const erros = [];
+    if(novo_livro.imagem!= null && novo_livro.imagem != undefined){
 
+    }
     const livro = await livroDAO.procurarLivroPeloIsbn(novo_livro.isbn);
 
     if(livro.length != 0){
@@ -25,17 +31,18 @@ exports.criarLivro = async function(novo_livro){
     if(erros.length > 0){
         return erros;
     }
-
-    const caminho = path.join(__dirname, '..', 'imagens/');
     const id_livro = await livroDAO.criarLivro(novo_livro);
+
+
+    const caminho = path.join( __dirname,'..','imagens/')
 
     extensao_arquivo = novo_livro.imagem.name.split(".");
 
-    await novo_livro.imagem.mv(caminho + id_livro + '.' + extensao, (err) => {
+    await novo_livro.imagem.mv(caminho + id_livro + '.' + extensao_arquivo.pop(), (err) => {
       if (err) console.error("Erro ao salvar imagem:", err);
     });
 
-    return true;;
+    return true;
 }
 
 // Função responsável por remover um livro pelo 'id_livro'
@@ -67,5 +74,6 @@ exports.listarLivrosComAssociacoes = async function (req, res) {
     console.error("Erro ao listar livros com associações:", erro);
     res.status(500).json({ erro: "Erro ao listar livros com associações" });
   }
-  
+
 };
+
