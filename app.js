@@ -4,6 +4,9 @@ const port = 3333;
 const bodyParser = require('body-parser');
 const fileupload = require('express-fileupload');
 const cors = require('cors');
+const path = require("path")
+
+app.use('/imagens', express.static(path.join(__dirname, 'imagens')));
 
 app.use('/bootstrap', express.static('./node_modules/bootstrap/dist'))
 
@@ -211,9 +214,14 @@ app.post('/removerCurso', function (req, res) {
 
 
 //categoria
-app.get('/listarCategorias', function (req, res) {
-  const resp = usuarioController.listarCategorias();
-  res.json(resp);  // Retorna a lista de categorias em JSON
+app.get('/listarCategorias', async function (req, res) {
+  try {
+    const resp = await categoriaController.listarCategorias();
+    res.json(resp);
+  } catch (error) {
+    console.error("Erro ao listar categorias:", error);
+    res.status(500).json({ error: "Erro ao listar categorias" });
+  }
 });
 
 app.post('/cadastrarCategoria', function (req, res) {
