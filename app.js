@@ -288,40 +288,77 @@ app.post('/removerLivro', function (req, res) {
 
 //emprestimo
 
-app.get('/listarEmprestimo', async function (req, res) {
+// app.get('/listarEmprestimo', async function (req, res) {
+//   try {
+//     const emprestimos = await emprestimoController.listarEmprestimo();
+//     res.json(emprestimos);
+//   } catch (erro) {
+//     console.error("Erro ao listar empréstimos:", erro);
+//     res.status(500).json({ erro: 'Erro ao buscar empréstimos' });
+//   }
+// });
+// app.post('/cadastrarEmprestimo', function (req, res) {
+//   const novo_emprestimo = new emprestimo(null, req.body.id_usuario, req.body.id_livro, req.body.data_emprestimo, req.body.data_devolucao, req.body.is_ativo);
+
+//   emprestimoController.criarEmprestimo(novo_emprestimo)
+//     .then(resp => {
+//       res.json({ mensagem: resp });
+//     })
+//     .catch(err => {
+//       console.error("Erro ao cadastrar emprestimo:", err);
+//       res.status(500).json({ error: 'Erro ao cadastrar emprestimo' });
+//     });
+
+// });
+
+// app.post("/removerEmprestimo", async function (req, res) {
+//   const { id_emprestimo } = req.body;
+
+//   try {
+//     const resultado = await emprestimoController.removerEmprestimo(id_emprestimo);
+//     res.json({ mensagem: "Empréstimo desativado com sucesso!", resultado });
+//   } catch (err) {
+//     console.error("Erro ao remover empréstimo:", err);
+//     res.status(500).json({ erro: "Erro ao remover empréstimo", detalhes: err.message });
+//   }
+// });
+
+// Listar todos os empréstimos
+app.get('/listarEmprestimo', async (req, res) => {
   try {
     const emprestimos = await emprestimoController.listarEmprestimo();
     res.json(emprestimos);
-  } catch (erro) {
-    console.error("Erro ao listar empréstimos:", erro);
-    res.status(500).json({ erro: 'Erro ao buscar empréstimos' });
-  }
-});
-app.post('/cadastrarEmprestimo', function (req, res) {
-  const novo_emprestimo = new emprestimo(null, req.body.id_usuario, req.body.id_livro, req.body.data_emprestimo, req.body.data_devolucao, req.body.is_ativo);
-
-  emprestimoController.criarEmprestimo(novo_emprestimo)
-    .then(resp => {
-      res.json({ mensagem: resp });
-    })
-    .catch(err => {
-      console.error("Erro ao cadastrar emprestimo:", err);
-      res.status(500).json({ error: 'Erro ao cadastrar emprestimo' });
-    });
-
-});
-
-app.post("/removerEmprestimo", async function (req, res) {
-  const { id_emprestimo } = req.body;
-
-  try {
-    const resultado = await emprestimoController.removerEmprestimo(id_emprestimo);
-    res.json({ mensagem: "Empréstimo desativado com sucesso!", resultado });
   } catch (err) {
-    console.error("Erro ao remover empréstimo:", err);
-    res.status(500).json({ erro: "Erro ao remover empréstimo", detalhes: err.message });
+    console.error('Erro ao listar empréstimos:', err);
+    res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });
+
+// Cadastrar um novo empréstimo
+app.post('/cadastrarEmprestimo', async (req, res) => {
+  try {
+    const erros = await emprestimoController.criarEmprestimo(req.body);
+    if (erros.length > 0) {
+      return res.status(400).json({ erros });
+    }
+    res.json({ mensagem: 'Empréstimo cadastrado com sucesso!' });
+  } catch (err) {
+    console.error('Erro ao cadastrar empréstimo:', err);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
+// Remover um empréstimo (exclusão lógica)
+app.post('/removerEmprestimo', async (req, res) => {
+  try {
+    const resultado = await emprestimoController.removerEmprestimo(req.body.id_emprestimo);
+    res.json({ mensagem: 'Empréstimo removido com sucesso!', resultado });
+  } catch (err) {
+    console.error('Erro ao remover empréstimo:', err);
+    res.status(500).json({ error: 'Erro interno do servidor' });
+  }
+});
+
 
 
 
