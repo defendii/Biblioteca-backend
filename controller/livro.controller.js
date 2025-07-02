@@ -10,10 +10,10 @@ const { error } = require("console")
 exports.listarLivros = async function(){
     // return livroDAO.listarLivros();
     const livros = await livroDAO.listarLivros()
-    for(const livro of livros){
-      const categorias= await livroDAO.listarCategoriasDoLivro(livro.id_livro);
+    // for(const livro of livros){
+    //   const categorias= await livroDAO.listarCategoriasDoLivro(livro.id_livro);
 
-    }
+    // }
 
     return livros;
 }
