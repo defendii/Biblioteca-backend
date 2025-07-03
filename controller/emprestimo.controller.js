@@ -13,22 +13,32 @@ exports.criarEmprestimo = async function (novo_emprestimo) {
   const erros = [];
 
   // Verifica se o usuário existe e seu tipo
-  const usuario = await usuarioDAO.procurarUsuarioPeloId(novo_emprestimo.id_usuario);
+  const usuario = await usuarioDAO.procurarUsuarioPeloRegistro_academico(novo_emprestimo.registro_academico);
   if (!usuario || usuario.length === 0) {
     erros.push("Usuário não encontrado.");
     return erros;
   }
 
-  const tipoUsuario = usuario[0].tipo.toLowerCase(); // "aluno" ou "professor"
+  const tipoUsuario = (usuario[0].tipo || "").trim().toLowerCase();
 
-  // Define prazo de devolução
+  let diasPrazo;
+  if (tipoUsuario === "professor") {
+    diasPrazo = 30;
+  } else if (tipoUsuario === "aluno") {
+    diasPrazo = 14;
+  } else {
+    erros.push("Tipo de usuário inválido.");
+    return erros;
+  }
+
+  // Define datas para o empréstimo e devolução
   const hoje = new Date();
-  const diasPrazo = tipoUsuario === "professor" ? 30 : 14;
   const dataDevolucao = new Date(hoje);
   dataDevolucao.setDate(hoje.getDate() + diasPrazo);
 
+
   // Verifica se o livro existe (pelo ISBN)
-  const livros = await livroDAO.ProcurarLivroPeloIsbn(novo_emprestimo.id_livro);
+  const livros = await livroDAO.procurarLivroPeloIsbn(novo_emprestimo.id_livro);
   if (livros.length === 0) {
     erros.push("Livro não encontrado.");
   } else {

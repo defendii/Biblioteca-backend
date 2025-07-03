@@ -31,6 +31,10 @@ const livro = require('./entidades/livro');
 const emprestimo = require('./entidades/emprestimo')
 const divida = require('./entidades/divida');
 const categoria_do_livro = require('./entidades/categoria_do_livro');
+const usuarioDAO = require('./model/usuario.dao');
+const emprestimoDAO = require('./model/emprestimo.dao')
+const livroDAO = require('./model/livro.dao')
+
 
 //Configuração do body-parser
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -288,40 +292,38 @@ app.post('/removerLivro', function (req, res) {
 
 //emprestimo
 
-// app.get('/listarEmprestimo', async function (req, res) {
-//   try {
-//     const emprestimos = await emprestimoController.listarEmprestimo();
-//     res.json(emprestimos);
-//   } catch (erro) {
-//     console.error("Erro ao listar empréstimos:", erro);
-//     res.status(500).json({ erro: 'Erro ao buscar empréstimos' });
-//   }
-// });
-// app.post('/cadastrarEmprestimo', function (req, res) {
-//   const novo_emprestimo = new emprestimo(null, req.body.id_usuario, req.body.id_livro, req.body.data_emprestimo, req.body.data_devolucao, req.body.is_ativo);
 
-//   emprestimoController.criarEmprestimo(novo_emprestimo)
-//     .then(resp => {
-//       res.json({ mensagem: resp });
-//     })
-//     .catch(err => {
-//       console.error("Erro ao cadastrar emprestimo:", err);
-//       res.status(500).json({ error: 'Erro ao cadastrar emprestimo' });
-//     });
+app.post("/cadastrarEmprestimo", async (req, res) => {
+  try {
+    const { registro_academico, id_livro, data_emprestimo, data_devolucao } = req.body;
+    const usuario = await usuarioDAO.procurarUsuarioPeloRegistro_academico(registro_academico);
+    if (!usuario || usuario.length === 0) {
+      return res.status(400).json(["Usuário não encontrado."]);
+    }
 
-// });
+    const id_usuario = usuario[0].id_usuario;
 
-// app.post("/removerEmprestimo", async function (req, res) {
-//   const { id_emprestimo } = req.body;
+    const novoEmprestimo = {
+      registro_academico,
+      id_usuario,
+      id_livro,
+      data_emprestimo,
+      data_devolucao,
+      is_ativo: true,
+    };
 
-//   try {
-//     const resultado = await emprestimoController.removerEmprestimo(id_emprestimo);
-//     res.json({ mensagem: "Empréstimo desativado com sucesso!", resultado });
-//   } catch (err) {
-//     console.error("Erro ao remover empréstimo:", err);
-//     res.status(500).json({ erro: "Erro ao remover empréstimo", detalhes: err.message });
-//   }
-// });
+    const erros = await emprestimoController.criarEmprestimo(novoEmprestimo);
+
+    if (erros.length > 0) {
+      return res.status(400).json(erros);
+    }
+
+    res.json([]);
+  } catch (erro) {
+    console.error("Erro ao cadastrar empréstimo:", erro);
+    res.status(500).json(["Erro interno ao cadastrar empréstimo."]);
+  }
+});
 
 // Listar todos os empréstimos
 app.get('/listarEmprestimo', async (req, res) => {
@@ -334,21 +336,7 @@ app.get('/listarEmprestimo', async (req, res) => {
   }
 });
 
-// Cadastrar um novo empréstimo
-app.post('/cadastrarEmprestimo', async (req, res) => {
-  try {
-    const erros = await emprestimoController.criarEmprestimo(req.body);
-    if (erros.length > 0) {
-      return res.status(400).json({ erros });
-    }
-    res.json({ mensagem: 'Empréstimo cadastrado com sucesso!' });
-  } catch (err) {
-    console.error('Erro ao cadastrar empréstimo:', err);
-    res.status(500).json({ error: 'Erro interno do servidor' });
-  }
-});
 
-// Remover um empréstimo (exclusão lógica)
 app.post('/removerEmprestimo', async (req, res) => {
   try {
     const resultado = await emprestimoController.removerEmprestimo(req.body.id_emprestimo);
@@ -359,6 +347,19 @@ app.post('/removerEmprestimo', async (req, res) => {
   }
 });
 
+app.post('/devolverEmprestimo', async (req, res) => {
+  try {
+    const { id_emprestimo } = req.body;
+    if (!id_emprestimo) return res.status(400).json({ erro: "ID não enviado" });
+
+    await emprestimoDAO.marcarComoDevolvido(id_emprestimo);
+
+    res.json({ mensagem: "Devolução registrada com sucesso." });
+  } catch (erro) {
+    console.error(erro);
+    res.status(500).json({ erro: "Erro no servidor" });
+  }
+});
 
 
 

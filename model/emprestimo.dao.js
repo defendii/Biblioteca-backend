@@ -30,6 +30,13 @@ exports.criarEmprestimo = async function (novo_emprestimo) {
 
   return "Empréstimo cadastrado com sucesso!";
 };
+exports.marcarComoDevolvido = async (id_emprestimo) => {
+  const sql = `
+    UPDATE emprestimo SET foi_devolvido = true WHERE id_emprestimo = $1
+  `;
+  return await db.query(sql, [id_emprestimo]);
+};
+
 
 // Buscar empréstimo pelo ID
 exports.procurarEmprestimoPeloId_emprestimo = async function (id_emprestimo) {
