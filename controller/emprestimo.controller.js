@@ -2,6 +2,7 @@ const emprestimoDAO = require("../model/emprestimo.dao");
 const livroDAO = require("../model/livro.dao");
 const usuarioDAO = require("../model/usuario.dao");
 const dividaDAO = require("../model/divida.dao");
+const enviarEmail = require('../utils/enviarEmail')
 
 // Listar todos os empréstimos
 exports.listarEmprestimo = async function () {
@@ -50,7 +51,6 @@ exports.criarEmprestimo = async function (novo_emprestimo) {
       erros.push("Todos os exemplares do livro estão emprestados.");
     }
 
-    // Ajusta o id_livro real para inserir no banco
     novo_emprestimo.id_livro = livro.id_livro;
   }
 
@@ -63,6 +63,19 @@ exports.criarEmprestimo = async function (novo_emprestimo) {
   novo_emprestimo.data_devolucao = dataDevolucao.toISOString().split("T")[0];
 
   await emprestimoDAO.criarEmprestimo(novo_emprestimo);
+
+  const livroCompleto = await livroDAO.procurarLivroPeloIsbn(novo_emprestimo.id_livro)
+  const usuarioCompleto = usuario[0]
+
+  await emprestarLivro({
+    titulo: livroCompleto.titulo,
+    data_emprestimo: novo_emprestimo.data_emprestimo,
+    data_devolucao: novo_emprestimo.data_devolucao
+  }, {
+    nome: usuarioCompleto.nome,
+    email: usuarioCompleto.email
+  });
+
   return [];
 };
 
@@ -94,3 +107,20 @@ exports.removerEmprestimo = async function (id_emprestimo) {
 
   return await emprestimoDAO.removerEmprestimoPeloId_emprestimo(id_emprestimo);
 };
+
+console.log("Enviando email para:", usuario.email);
+exports.emprestarLivro = async function (livro, usuario) {
+  const mensagem = `
+Olá ${usuario.nome}!
+
+Você realizou o empréstimo do livro "${livro.titulo}" no dia ${livro.data_emprestimo}.
+O prazo de devolução é até ${livro.data_devolucao}.
+
+Por favor, devolva o livro até essa data para evitar multas.
+
+Atenciosamente,
+Equipe da Biblioteca AJL
+  `;
+
+  enviarEmail(usuario.email, `Empréstimo do livro "${livro.titulo}"`, mensagem);
+}
