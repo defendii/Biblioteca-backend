@@ -2,7 +2,7 @@ const db = require("../config/database");
 
 // Função responsável por listar todos os livros
 exports.listarLivros = async function () {
-    const { rows } = await db.query("SELECT * FROM livro WHERE is_ativo = true");
+    const { rows } = await db.query("SELECT * FROM livro WHERE is_ativo = true ORDER BY titulo");
     return rows;
 }
 
