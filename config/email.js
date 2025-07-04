@@ -17,17 +17,13 @@ var transporter = nodemailer.createTransport({
     }
 });
 
-var mailOptions = {
-    from: 'ajlluanajulia@gmail.com',
-    to: emailDestino,
-    subject: assunto,
-    text: mensagem
-};
-
 let enviarEmail = function (emailDestino, assunto, mensagem) {
-    mailOptions.to = emailDestino;
-    mailOptions.subject = assunto;
-    mailOptions.text = mensagem;
+    let mailOptions = {
+        from: process.env.EMAIL_ADDRESS,
+        to: emailDestino,
+        subject: assunto,
+        text: mensagem
+    };
     transporter.sendMail(mailOptions, function (error, info) {
         if (error) {
             console.log(error);

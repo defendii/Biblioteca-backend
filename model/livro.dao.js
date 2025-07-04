@@ -29,6 +29,16 @@ exports.procurarLivroPeloIsbn = async function (isbn) {
     return rows;
 }
 
+//Função responsável por buscar um livro a partir de seu 'id_livro'
+exports.procurarLivroPeloId = async function (id_livro) {
+    const { rows } = await db.query(
+        `SELECT * FROM livro WHERE id_livro = $1`,
+        [id_livro]
+    );
+
+    return rows;
+}
+
 //Função responsável por remover um livro a partir de seu 'id_livro'
 exports.removerLivroPeloId_livro = async function (id_livro) {
     const { rows } = await db.query(
@@ -40,7 +50,7 @@ exports.removerLivroPeloId_livro = async function (id_livro) {
 
 exports.atualizarLivroPeloId = async function (livro) {
     const query = `
-        UPDATE livro  
+        UPDATE livro
         SET titulo = $1,
             qtde_disponivel = $2,
             isbn = $3,

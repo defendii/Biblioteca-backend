@@ -2,18 +2,36 @@ const emprestimoDAO = require("../model/emprestimo.dao");
 const livroDAO = require("../model/livro.dao");
 const usuarioDAO = require("../model/usuario.dao");
 const dividaDAO = require("../model/divida.dao");
-const enviarEmail = require('../utils/enviarEmail')
+const enviarEmail = require('../config/email')
 
 // Listar todos os empréstimos
 exports.listarEmprestimo = async function () {
   return await emprestimoDAO.listarEmprestimo();
 };
 
-// Criar empréstimo com validações
+exports.emprestarLivro = async function (livro, usuario) {
+  const dataEmprestimoBR = new Date(livro.data_emprestimo).toLocaleDateString("pt-BR");
+  const dataDevolucaoBR = new Date(livro.data_devolucao).toLocaleDateString("pt-BR");
+
+  const mensagem = `
+Olá ${usuario.nome}!
+
+Você realizou o empréstimo do livro "${livro.titulo}" no dia ${dataEmprestimoBR}.
+O prazo de devolução é até ${dataDevolucaoBR}.
+
+Por favor, devolva o livro até essa data para evitar multas.
+
+Atenciosamente,
+Equipe da Biblioteca AJL
+  `;
+
+  enviarEmail(usuario.email, `Empréstimo do livro "${livro.titulo}"`, mensagem);
+  console.log("Enviando email para:", usuario.email);
+}
+
 exports.criarEmprestimo = async function (novo_emprestimo) {
   const erros = [];
 
-  // Verifica se o usuário existe e seu tipo
   const usuario = await usuarioDAO.procurarUsuarioPeloRegistro_academico(novo_emprestimo.registro_academico);
   if (!usuario || usuario.length === 0) {
     erros.push("Usuário não encontrado.");
@@ -32,43 +50,44 @@ exports.criarEmprestimo = async function (novo_emprestimo) {
     return erros;
   }
 
-  // Define datas para o empréstimo e devolução
   const hoje = new Date();
   const dataDevolucao = new Date(hoje);
   dataDevolucao.setDate(hoje.getDate() + diasPrazo);
 
+  const idLimpo = novo_emprestimo.id_livro.trim();
 
-  // Verifica se o livro existe (pelo ISBN)
-  const livros = await livroDAO.procurarLivroPeloIsbn(novo_emprestimo.id_livro);
-  if (livros.length === 0) {
+  const livrosCompletos = await livroDAO.procurarLivroPeloId(idLimpo);
+
+  if (livrosCompletos.length === 0) {
     erros.push("Livro não encontrado.");
   } else {
-    const livro = livros[0];
+    const livroCompleto = livrosCompletos[0];
 
-    // Verifica disponibilidade do livro
-    const emprestimosAtivos = await emprestimoDAO.contarEmprestimosAtivosPorLivro(livro.id_livro);
-    if (emprestimosAtivos >= livro.qtde_disponivel) {
+    const emprestimosAtivos = await emprestimoDAO.contarEmprestimosAtivosPorLivro(livroCompleto.id_livro);
+    if (emprestimosAtivos >= livroCompleto.qtde_disponivel) {
       erros.push("Todos os exemplares do livro estão emprestados.");
     }
 
-    novo_emprestimo.id_livro = livro.id_livro;
+    novo_emprestimo.id_livro = livroCompleto.id_livro;
   }
 
   if (erros.length > 0) {
     return erros;
   }
 
-  // Atribui data atual e data de devolução automática
   novo_emprestimo.data_emprestimo = hoje.toISOString().split("T")[0];
   novo_emprestimo.data_devolucao = dataDevolucao.toISOString().split("T")[0];
 
   await emprestimoDAO.criarEmprestimo(novo_emprestimo);
 
-  const livroCompleto = await livroDAO.procurarLivroPeloIsbn(novo_emprestimo.id_livro)
+  const livroCompleto = await livroDAO.procurarLivroPeloId(novo_emprestimo.id_livro)
+  const livro = livroCompleto[0]
   const usuarioCompleto = usuario[0]
 
-  await emprestarLivro({
-    titulo: livroCompleto.titulo,
+  const tituloLivro = livro.titulo || livro.nome || "Título não encontrado";
+
+  await exports.emprestarLivro({
+    titulo: tituloLivro,
     data_emprestimo: novo_emprestimo.data_emprestimo,
     data_devolucao: novo_emprestimo.data_devolucao
   }, {
@@ -108,19 +127,3 @@ exports.removerEmprestimo = async function (id_emprestimo) {
   return await emprestimoDAO.removerEmprestimoPeloId_emprestimo(id_emprestimo);
 };
 
-console.log("Enviando email para:", usuario.email);
-exports.emprestarLivro = async function (livro, usuario) {
-  const mensagem = `
-Olá ${usuario.nome}!
-
-Você realizou o empréstimo do livro "${livro.titulo}" no dia ${livro.data_emprestimo}.
-O prazo de devolução é até ${livro.data_devolucao}.
-
-Por favor, devolva o livro até essa data para evitar multas.
-
-Atenciosamente,
-Equipe da Biblioteca AJL
-  `;
-
-  enviarEmail(usuario.email, `Empréstimo do livro "${livro.titulo}"`, mensagem);
-}

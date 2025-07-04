@@ -15,6 +15,7 @@
     "express": "^5.1.0",
     "express-fileupload": "^1.5.1",
     "fastify": "^5.3.3",
+    "nodemailer": "^7.0.4",
     "pg": "^8.16.0",
     "postgres": "^3.4.7"
   },
