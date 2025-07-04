@@ -288,6 +288,30 @@ app.post('/removerLivro', function (req, res) {
   resultado.then(resp => { res.redirect('/listarLivros'); });
 });
 
+app.put('/atualizarLivro', function (req, res) {
+  const imagem = req.files?.imagem
+  const livroAtualizado = {
+    id_livro: req.body.id_livro,
+    titulo: req.body.titulo,
+    qtde_disponivel: req.body.qtde_disponivel,
+    isbn: req.body.isbn,
+    edicao: req.body.edicao,
+    is_ativo: req.body.is_ativo,
+    imagem: imagem,
+  }
+
+  livroController.atualizarLivro(livroAtualizado)
+    .then(resp => {
+      if (!resp) {
+        return res.status(404).json({ mensagem: 'Livro não encontrado para atualização.' });
+      }
+      res.json({ mensagem: 'Livro atualizado com sucesso!', usuario: resp });
+    })
+    .catch(err => {
+      console.error('Erro ao atualizar livro:', err);
+      res.status(500).json({ error: 'Erro ao atualizar livro', err });
+    })
+});
 
 
 //emprestimo

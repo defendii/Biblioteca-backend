@@ -1,13 +1,13 @@
 const db = require("../config/database");
 
 // Função responsável por listar todos os livros
-exports.listarLivros = async function(){
-    const {rows} = await db.query("SELECT * FROM livro WHERE is_ativo = true");
+exports.listarLivros = async function () {
+    const { rows } = await db.query("SELECT * FROM livro WHERE is_ativo = true");
     return rows;
 }
 
 // Função responsável por criar um novo livro
-exports.criarLivro = async function(novo_livro){
+exports.criarLivro = async function (novo_livro) {
     const extensao_arquivo = novo_livro.imagem.name.split(".").pop();
 
     const resposta = await db.query(
@@ -20,9 +20,9 @@ exports.criarLivro = async function(novo_livro){
 }
 
 //Função responsável por buscar um livro a partir de seu 'isbn'
-exports.procurarLivroPeloIsbn = async function(isbn){
-    const {rows} = await db.query(
-       `SELECT * FROM livro WHERE isbn = $1`,
+exports.procurarLivroPeloIsbn = async function (isbn) {
+    const { rows } = await db.query(
+        `SELECT * FROM livro WHERE isbn = $1`,
         [isbn]
     );
 
@@ -30,12 +30,38 @@ exports.procurarLivroPeloIsbn = async function(isbn){
 }
 
 //Função responsável por remover um livro a partir de seu 'id_livro'
-exports.removerLivroPeloId_livro = async function(id_livro){
-    const {rows} = await db.query(
+exports.removerLivroPeloId_livro = async function (id_livro) {
+    const { rows } = await db.query(
         `UPDATE livro SET is_ativo = false WHERE id_livro = '${id_livro}'`
     );
 
     return rows;
 }
 
+exports.atualizarLivroPeloId = async function (livro) {
+    const query = `
+        UPDATE livro  
+        SET titulo = $1,
+            qtde_disponivel = $2,
+            isbn = $3,
+            edicao = $4,
+            caminho_foto_capa = $5,
+            is_ativo = $6
+            WHERE id_livro = $7
+        RETURNING *;
+    `;
 
+    const values = [
+        livro.titulo,
+        livro.qtde_disponivel,
+        livro.isbn,
+        livro.edicao,
+        livro.caminho_foto_capa,
+        livro.is_ativo,
+        livro.id_livro
+    ];
+
+    const { rows } = await db.query(query, values);
+
+    return rows[0];
+}
