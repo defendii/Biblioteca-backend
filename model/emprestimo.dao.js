@@ -1,4 +1,5 @@
 const db = require("../config/database");
+const conexao = require("../config/database");
 
 // Listar todos os empréstimos
 exports.listarEmprestimo = async function () {
@@ -64,3 +65,26 @@ exports.contarEmprestimosAtivosPorLivro = async function (id_livro) {
   );
   return parseInt(rows[0].count);
 };
+
+
+exports.listarEmprestimosDoUsuario = async function (id_usuario) {
+  const sql = `
+    SELECT e.*, l.titulo
+    FROM emprestimo e
+    JOIN livro l ON e.id_livro = l.id_livro
+    WHERE e.id_usuario = $1
+    ORDER BY e.data_emprestimo DESC
+  `;
+
+  console.log("Executando a query para o id_usuario:", id_usuario);
+
+  try {
+    const { rows } = await db.query(sql, [id_usuario]);
+    console.log("Query executada com sucesso, resultados:", rows.length);
+    return rows;
+  } catch (err) {
+    console.error("Erro na query:", err);
+    throw err;
+  }
+};
+

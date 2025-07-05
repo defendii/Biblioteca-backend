@@ -127,3 +127,6 @@ exports.removerEmprestimo = async function (id_emprestimo) {
   return await emprestimoDAO.removerEmprestimoPeloId_emprestimo(id_emprestimo);
 };
 
+exports.listarEmprestimosDoUsuario = async function (id_usuario) {
+  return await emprestimoDAO.listarEmprestimosDoUsuario(id_usuario);
+};

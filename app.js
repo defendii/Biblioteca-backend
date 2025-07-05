@@ -360,6 +360,16 @@ app.get('/listarEmprestimo', async (req, res) => {
   }
 });
 
+app.get('/historicoEmprestimos/:id_usuario', async (req, res) => {
+  try {
+    const id_usuario = parseInt(req.params.id_usuario);
+    const historico = await emprestimoController.listarEmprestimosDoUsuario(id_usuario);
+    res.json(historico);
+  } catch (erro) {
+    console.error("Erro ao buscar histórico do usuário:", erro);
+    res.status(500).json({ erro: "Erro ao buscar histórico do usuário" });
+  }
+});
 
 app.post('/removerEmprestimo', async (req, res) => {
   try {
