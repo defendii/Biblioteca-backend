@@ -2,7 +2,7 @@ const db = require("../config/database");
 
 // Função responsável por listar todos os usuários
 exports.listarUsuarios = async function () {
-    const { rows } = await db.query("SELECT * FROM usuario WHERE is_ativo = true");
+    const { rows } = await db.query("SELECT * FROM usuario WHERE is_ativo = true ORDER BY nome");
     return rows;
 }
 
@@ -46,7 +46,7 @@ exports.removerUsuarioPeloId_usuario = async function (id_usuario) {
 
 exports.atualizarUsuarioPeloId = async function (usuario) {
     const query = `
-      UPDATE usuario 
+      UPDATE usuario
       SET nome = $1,
           registro_academico = $2,
           data_nascimento = $3,
