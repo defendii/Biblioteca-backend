@@ -161,9 +161,14 @@ app.post('/removerAutores', function (req, res) {
 
 
 // editora
-app.get('/listarEditoras', function (req, res) {
-  const resp = usuarioController.listarEditoras();
-  res.json(resp);  // Retorna a lista de editoras em JSON
+app.get('/listarEditoras', async function (req, res) {
+  try {
+    const resp = await editoraController.listarEditoras();
+    res.json(resp);
+  } catch (error) {
+    console.error("Erro ao listar editoras:", error);
+    res.status(500).json({ error: "Erro ao listar editoras" });
+  }
 });
 
 app.post('/cadastrarEditora', function (req, res) {
