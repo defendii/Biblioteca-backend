@@ -136,9 +136,14 @@ app.put('/atualizarUsuario', function (req, res) {
 
 
 //autores
-app.get('/listarAutores', function (req, res) {
-  const resp = usuarioController.listarAutores();
-  res.json(resp);  // Retorna a lista de autores em JSON
+app.get('/listarAutores',async function (req, res) {
+  try {
+    const resp = await autoresController.listarAutores();
+    res.json(resp);
+  } catch (error) {
+    console.error("Erro ao listar autors:", error);
+    res.status(500).json({ error: "Erro ao listar autores" });
+  }
 });
 
 app.post('/cadastrarAutor', function (req, res) {
