@@ -665,17 +665,13 @@ app.post('/removerCategoriaDoLivro', async (req, res) => {
 app.post('/listarBibliotecario', async function (req, res) {
   try {
     const { login, senha } = req.body
-    const resultado = await bibliotecarioController.buscarPorLogin(login);
+    const resultado = await bibliotecarioController.procurarBibliotecarioPeloLogin(login);
 
-    if (!resultado) {
-      return res.status(401).json({ message: "Usuário não encontrado" });
+    if (!resultado || resultado.length === 0 || resultado[0].senha !== senha) {
+      return res.status(401).json({ message: "Usuário ou senha incorretos" });
     }
 
-    if (resultado.senha !== senha) {
-      return res.status(401).json({ message: "Senha incorreta" });
-    }
-
-    res.json({ sucesso: true, usuario: resultado });
+    res.json({ sucesso: true, usuario: resultado[0] });
   } catch (error) {
     console.error("Erro ao verificar login:", error);
     res.status(500).json({ message: "Erro no servidor" });

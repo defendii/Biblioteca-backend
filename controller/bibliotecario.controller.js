@@ -14,7 +14,7 @@ exports.criarBibliotecario= async function(novo_bibliotecario){
     if(user.length != 0){
         erros.push("Erro: Bibliotecario já cadastrado!");
     }
-    
+
     if(erros.length > 0){
         return erros;
     }
@@ -28,6 +28,8 @@ exports.removerBibliotecario= async function(id_bibliotecario){
     return await bibliotecarioDAO.removerBibliotecarioPeloId_bibliotecario(id_bibliotecario);
 }
 
-exports.buscarBibliotecarioPeloLogin= async function(login){
-    return await bibliotecarioDAO.buscarBibliotecarioPeloLogin(login);
+exports.procurarBibliotecarioPeloLogin= async function(login){
+    const resultado = await bibliotecarioDAO.procurarBibliotecarioPeloLogin(login);
+    console.log("Resultado encontrado no banco:", resultado);
+    return resultado
 }
