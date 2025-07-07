@@ -83,3 +83,36 @@ exports.atualizarLivroPeloId = async function (livro) {
 
     return rows[0];
 }
+exports.buscarAutoresDoLivro = async function(id_livro) {
+  const { rows } = await db.query(
+    `SELECT a.id_autor, a.nome_autor
+     FROM autores a
+     JOIN autores_do_livro al ON a.id_autor = al.id_autor
+     WHERE al.id_livro = $1`,
+    [id_livro]
+  );
+  return rows;
+}
+
+exports.buscarCategoriasDoLivro = async function(id_livro) {
+  const { rows } = await db.query(
+    `SELECT c.id_categoria, c.nome_categoria
+     FROM categoria c
+     JOIN categoria_do_livro cd ON c.id_categoria = cd.id_categoria
+     WHERE cd.id_livro = $1`,
+    [id_livro]
+  );
+  return rows;
+}
+
+exports.buscarEditoraDoLivro = async function(id_livro) {
+  const { rows } = await db.query(
+    `SELECT e.id_editora, e.nome
+     FROM editora e
+     JOIN editora_do_livro ed ON e.id_editora = ed.id_editora
+     WHERE ed.id_livro = $1`,
+    [id_livro]
+  );
+  return rows[0] || null;
+}
+

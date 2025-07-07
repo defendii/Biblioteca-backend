@@ -170,3 +170,41 @@ exports.removerLivro = async function (id_livro) {
   }
   return await livroDAO.removerLivroPeloId_livro(id_livro);
 };
+
+
+exports.atualizarLivro = async function (livro) {
+  try {
+    const livroAtualizado = await livroDAO.atualizarLivroPeloId(livro);
+
+    const autores = await autorDAO.listarAutoresDoLivroPorLivro(livro.id_livro);
+    const categorias = await categoriaDAO.listarCategoriasDoLivro(livro.id_livro);
+    const editora = await editoraDAO.listarEditoraDoLivro(livro.id_livro);
+
+    return {
+      ...livroAtualizado,
+      autores,
+      categorias,
+      editora,
+    };
+  } catch (err) {
+    console.error(err);
+    throw err;
+  }
+};
+
+
+exports.buscarLivroCompletoPorId = async function(id_livro) {
+  const livro = await livroDAO.procurarLivroPeloId(id_livro);
+  if (!livro || livro.length === 0) return null;
+
+  const autores = await livroDAO.buscarAutoresDoLivro(id_livro);
+  const categorias = await livroDAO.buscarCategoriasDoLivro(id_livro);
+  const editora = await livroDAO.buscarEditoraDoLivro(id_livro);
+
+  return {
+    ...livro[0],
+    autores,
+    categorias,
+    editora,
+  };
+};
