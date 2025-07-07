@@ -1,6 +1,6 @@
 const db = require("../config/database");
 
-// Função responsável por listar todos os usuários
+
 exports.listarUsuarios = async function () {
     const { rows } = await db.query("SELECT * FROM usuario WHERE is_ativo = true ORDER BY nome");
     return rows;
@@ -26,14 +26,8 @@ exports.criarUsuario = async function (novo_usuario) {
 }
 
 //Função responsável por buscar um usuário a partir de seu 'registro_academico'
-exports.procurarUsuarioPeloRegistro_academico = async function (registro_academico) {
-    const { rows } = await db.query(
-        `SELECT * FROM usuario WHERE registro_academico = $1`,
-        [registro_academico]
-    );
 
-    return rows;
-}
+
 
 //Função responsável por remover um usuário a partir de seu 'id_usuario'
 exports.removerUsuarioPeloId_usuario = async function (id_usuario) {
@@ -44,8 +38,17 @@ exports.removerUsuarioPeloId_usuario = async function (id_usuario) {
     return rows;
 }
 
+exports.procurarUsuarioPeloID = async function (id_usuario) {
+    const { rows } = await db.query(
+      "SELECT * FROM usuario WHERE id_usuario = $1",
+      [id_usuario]
+    );
+  
+    return rows[0];  
+  }
+
 exports.atualizarUsuarioPeloId = async function (usuario) {
-    const query = `
+    const queryUsuario = `
       UPDATE usuario
       SET nome = $1,
           registro_academico = $2,
@@ -58,7 +61,7 @@ exports.atualizarUsuarioPeloId = async function (usuario) {
       RETURNING *;
     `;
 
-    const values = [
+    const valuesUsuario = [
         usuario.nome,
         usuario.registro_academico,
         usuario.data_nascimento,
@@ -69,10 +72,29 @@ exports.atualizarUsuarioPeloId = async function (usuario) {
         usuario.id_usuario
     ];
 
-    const { rows } = await db.query(query, values);
+    const { rows } = await db.query(queryUsuario, valuesUsuario);
+
+    await db.query(`UPDATE cursos_dos_usuarios SET is_ativo = false WHERE id_usuario = $1`, [usuario.id_usuario]);
+
+    if (usuario.id_cursos && usuario.id_cursos.length > 0) {
+        for (const id_curso of usuario.id_cursos) {
+            const result = await db.query(
+                `UPDATE cursos_dos_usuarios SET is_ativo = true WHERE id_usuario = $1 AND id_curso = $2 RETURNING *`,
+                [usuario.id_usuario, id_curso]
+            );
+            if (result.rowCount === 0) {
+                await db.query(
+                    `INSERT INTO cursos_dos_usuarios (id_usuario, id_curso, is_ativo) VALUES ($1, $2, true)`,
+                    [usuario.id_usuario, id_curso]
+                );
+            }
+        }
+    }
 
     return rows[0];
-}
+};
+
+
 
 // Busca cursos associados a um usuário pelo id_usuario
 exports.listarCursosDoUsuario = async function (id_usuario) {

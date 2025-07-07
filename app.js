@@ -12,6 +12,7 @@ app.use('/bootstrap', express.static('./node_modules/bootstrap/dist'))
 
 const usuarioController = require('./controller/usuario.controller');
 const autoresController = require('./controller/autores.controller');
+const bibliotecarioController = require('./controller/bibliotecario.controller');
 const editoraController = require('./controller/editora.controller');
 const cursoController = require('./controller/curso.controller');
 const categoriaController = require('./controller/categoria.controller');
@@ -24,6 +25,7 @@ const editoraDoLivro = require('./controller/editora_do_livro.controller')
 const categoriasDoLivro = require('./controller/categoria_do_livro.controller');
 const usuario = require('./entidades/usuario');
 const autores = require('./entidades/autores');
+const bibliotecario = require('./entidades/bibliotecario');
 const editora = require('./entidades/editora');
 const curso = require('./entidades/curso');
 const categoria = require('./entidades/categoria');
@@ -66,7 +68,6 @@ app.get('/listarUsuarios', function (req, res) {
     });
 });
 
-// app.post('/cadastrarUsuario', function (req, res) {
 app.post('/cadastrarUsuario', async function (req, res) {
   const novo_usuario = new usuario(
     null,
@@ -88,7 +89,7 @@ app.post('/cadastrarUsuario', async function (req, res) {
     });
 
   } catch (err) {
-    console.error("Erro ao cadastrar usuário:", err);
+    console.error("Erro  ao cadastrar usuário:", err);
     res.status(500).json({
       error: 'Erro ao cadastrar usuário',
       detalhes: err.message
@@ -109,30 +110,65 @@ app.post('/removerUsuario', function (req, res) {
     });
 });
 
-app.put('/atualizarUsuario', function (req, res) {
-  const usuarioAtualizado = new usuario(
-    req.body.id_usuario,
-    req.body.nome,
-    req.body.registro_academico,
-    req.body.data_nascimento,
-    req.body.email,
-    req.body.telefone,
-    req.body.tipo,
-    req.body.is_ativo
-  );
-
-  usuarioController.atualizarUsuario(usuarioAtualizado)
-    .then(resp => {
-      if (!resp) {
-        return res.status(404).json({ mensagem: 'Usuário não encontrado para atualização.' });
-      }
-      res.json({ mensagem: 'Usuário atualizado com sucesso!', usuario: resp });
-    })
-    .catch(err => {
-      console.error('Erro ao atualizar usuário:', err);
-      res.status(500).json({ error: 'Erro ao atualizar usuário', err });
-    });
+app.put('/atualizarUsuario', async (req, res) => {
+  try {
+    const usuarioAtualizado = await usuarioController.atualizarUsuario(req.body);
+    res.json({ usuario: usuarioAtualizado });
+  } catch (error) {
+    console.error("Erro ao atualizar usuário:", error);
+    res.status(500).send(error.message);
+  }
 });
+
+
+exports.atualizarUsuarioPeloId = async function (usuario) {
+  const queryUsuario = `
+    UPDATE usuario
+    SET nome = $1,
+        registro_academico = $2,
+        data_nascimento = $3,
+        email = $4,
+        telefone = $5,
+        tipo = $6,
+        is_ativo = $7
+    WHERE id_usuario = $8
+    RETURNING *;
+  `;
+
+  const valuesUsuario = [
+    usuario.nome,
+    usuario.registro_academico,
+    usuario.data_nascimento,
+    usuario.email,
+    usuario.telefone,
+    usuario.tipo,
+    usuario.is_ativo,
+    usuario.id_usuario
+  ];
+
+  const { rows } = await db.query(queryUsuario, valuesUsuario);
+
+  await db.query(`UPDATE cursos_dos_usuarios SET is_ativo = false WHERE id_usuario = $1`, [usuario.id_usuario]);
+
+  if (usuario.id_cursos && usuario.id_cursos.length > 0) {
+    for (const id_curso of usuario.id_cursos) {
+      const result = await db.query(
+        `UPDATE cursos_dos_usuarios SET is_ativo = true WHERE id_usuario = $1 AND id_curso = $2 RETURNING *`,
+        [usuario.id_usuario, id_curso]
+      );
+
+      if (result.rowCount === 0) {
+        await db.query(
+          `INSERT INTO cursos_dos_usuarios (id_usuario, id_curso, is_ativo) VALUES ($1, $2, true)`,
+          [usuario.id_usuario, id_curso]
+        );
+      }
+    }
+  }
+
+  return rows[0];
+};
+
 
 
 //autores
@@ -335,7 +371,6 @@ app.put('/atualizarLivro', function (req, res) {
 
 //emprestimo
 
-
 app.post("/cadastrarEmprestimo", async (req, res) => {
   try {
     const { registro_academico, id_livro, data_emprestimo, data_devolucao } = req.body;
@@ -415,12 +450,10 @@ app.post('/devolverEmprestimo', async (req, res) => {
 });
 
 
-
-
 //divida
 app.get('/listarDivida', function (req, res) {
   const resp = usuarioController.listarDivida();
-  res.json(resp);  // Retorna a lista de  em JSON
+  res.json(resp);
 });
 
 app.post('/cadastrarDivida', function (req, res) {
@@ -482,6 +515,16 @@ app.post('/removerCursoDoUsuario', async function (req, res) {
   }
 });
 
+app.get('/listarCursosDoUsuario/:id_usuario', async (req, res) => {
+  try {
+    const cursos = await usuarioDAO.listarCursosDosUsuarios(req.params.id_usuario);
+    res.json(cursos);
+  } catch (error) {
+    res.status(500).json({ error: "Erro ao listar cursos do usuário" });
+  }
+});
+
+
 //Autor do livro
 app.get('/listaAutoresDoLivro/:id_livro', async (req, res) => {
   try {
@@ -493,7 +536,6 @@ app.get('/listaAutoresDoLivro/:id_livro', async (req, res) => {
     res.status(500).json({ erro: 'Erro ao listar autores do livro', detalhes: error.message });
   }
 });
-
 
 app.post('/associarAutorAoLivro', async (req, res) => {
   try {
@@ -511,7 +553,6 @@ app.post('/associarAutorAoLivro', async (req, res) => {
     res.status(500).json({ erro: 'Erro interno no servidor', detalhes: error.message });
   }
 });
-
 
 app.post('/removerAutorDoLivro', async (req, res) => {
   try {
@@ -536,7 +577,7 @@ app.get('/listarEditoraDoLivro/:id_livro', async (req, res) => {
 });
 
 app.post('/associarEditoraAoLivro', async (req, res) => {
-    try {
+  try {
     const { id_livro, id_editora } = req.body;
     const erros = await editoraDoLivro.associarEditoraAoLivro({ id_livro, id_editora });
 
@@ -606,6 +647,57 @@ app.post('/removerCategoriaDoLivro', async (req, res) => {
   } catch (error) {
     res.status(500).json({ erro: 'Erro ao remover categoria do livro', detalhes: error.message });
   }
+});
+
+
+// bibliotecario
+
+// app.get('/listarBibliotecario', async function (req, res) {
+//   try {
+//     const resp = await bibliotecarioController.listarBibliotecario();
+//     res.json(resp);
+//   } catch (error) {
+//     console.error("Erro ao listar bibliotecarios:", error);
+//     res.status(500).json({ error: "Erro ao listar bibliotecarios" });
+//   }
+// });
+
+app.post('/listarBibliotecario', async function (req, res) {
+  try {
+    const { login, senha } = req.body
+    const resultado = await bibliotecarioController.buscarPorLogin(login);
+
+    if (!resultado) {
+      return res.status(401).json({ message: "Usuário não encontrado" });
+    }
+
+    if (resultado.senha !== senha) {
+      return res.status(401).json({ message: "Senha incorreta" });
+    }
+
+    res.json({ sucesso: true, usuario: resultado });
+  } catch (error) {
+    console.error("Erro ao verificar login:", error);
+    res.status(500).json({ message: "Erro no servidor" });
+  }
+});
+
+app.post('/cadastrarBibliotecario', function (req, res) {
+  const novo_bibliotecario = new bibliotecario(null, req.body.login, req.body.senha, req.body.is_ativo);
+
+  bibliotecarioController.criarBibliotecario(novo_bibliotecario)
+    .then(resp => {
+      res.json({ mensagem: resp });
+    })
+    .catch(err => {
+      res.status(500).json({ error: 'Erro ao cadastrar bibliotecario' });
+    });
+
+});
+
+app.post('/removerBibliotecario', function (req, res) {
+  const resultado = bibliotecario.removerBibliotecario(req.query.id_bibliotecario);
+  resultado.then(resp => { res.redirect('/listarBibliotecarios'); });
 });
 
 
