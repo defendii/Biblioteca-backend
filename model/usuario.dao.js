@@ -107,3 +107,12 @@ exports.listarCursosDoUsuario = async function (id_usuario) {
     const { rows } = await db.query(query, [id_usuario]);
     return rows;
 };
+
+exports.procurarUsuarioPeloRegistro_academico = async function (registro_academico) {
+    const { rows } = await db.query(
+        `SELECT * FROM usuario WHERE registro_academico = $1`,
+        [registro_academico]
+    );
+
+    return rows;
+}
