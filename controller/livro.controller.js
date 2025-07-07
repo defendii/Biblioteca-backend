@@ -6,6 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const { error } = require("console")
 
+
 // Função responsável por listar todos oslivros
 exports.listarLivros = async function () {
   // return livroDAO.listarLivros();
@@ -23,34 +24,84 @@ function inserirImagem(novo_livro) {
 }
 
 
-// Função responsável por criar um novo livro
+function moverArquivo(file, destino) {
+  return new Promise((resolve, reject) => {
+    file.mv(destino, (err) => {
+      if (err) reject(err);
+      else resolve();
+    });
+  });
+}
+
 exports.criarLivro = async function (novo_livro) {
   const erros = [];
-  if (novo_livro.imagem != null && novo_livro.imagem != undefined) {
 
-  }
-  const livro = await livroDAO.procurarLivroPeloIsbn(novo_livro.isbn);
-
-  if (livro.length != 0) {
+  // Verifica isbn duplicado
+  const livroExistente = await livroDAO.procurarLivroPeloIsbn(novo_livro.isbn);
+  if (livroExistente.length !== 0) {
     erros.push("Erro: isbn já cadastrado!");
+    return { sucesso: false, erros };
   }
 
-  if (erros.length > 0) {
-    return erros;
+  // Converte is_ativo para boolean (se for string)
+  if (typeof novo_livro.is_ativo === "string") {
+    novo_livro.is_ativo = novo_livro.is_ativo.toLowerCase() === "true";
+  } else {
+    novo_livro.is_ativo = Boolean(novo_livro.is_ativo);
   }
+
+  // Cria o livro na tabela livro e obtém id_livro
   const id_livro = await livroDAO.criarLivro(novo_livro);
 
+  // Salva imagem
+  if (novo_livro.imagem) {
+    const caminho = path.join(__dirname, '..', 'imagens/');
+    const extensao_arquivo = novo_livro.imagem.name.split(".").pop();
 
-  const caminho = path.join(__dirname, '..', 'imagens/')
+    try {
+      await moverArquivo(novo_livro.imagem, caminho + id_livro + '.' + extensao_arquivo);
+    } catch (err) {
+      console.error("Erro ao salvar imagem:", err);
+    }
+  }
 
-  extensao_arquivo = novo_livro.imagem.name.split(".");
+  // Associa autores (array de ids)
+  if (novo_livro.autores && Array.isArray(novo_livro.autores)) {
+    for (const id_autorRaw of novo_livro.autores) {
+      const id_autor = parseInt(id_autorRaw);
+      const vinculoExistente = await autorDAO.procurarAutorPeloId_autorDoLivro(id_livro, id_autor);
+      if (vinculoExistente && vinculoExistente.is_ativo === false) {
+        await autorDAO.reativarAutorNoLivro(id_livro, id_autor);
+      } else if (!vinculoExistente) {
+        await autorDAO.adicionarAutorAoLivro({ id_livro, id_autor, is_ativo: true });
+      }
+    }
+  }
 
-  await novo_livro.imagem.mv(caminho + id_livro + '.' + extensao_arquivo.pop(), (err) => {
-    if (err) console.error("Erro ao salvar imagem:", err);
-  });
+  // Associa categorias (array de ids)
+  if (novo_livro.categorias && Array.isArray(novo_livro.categorias)) {
+    for (const id_categoriaRaw of novo_livro.categorias) {
+      const id_categoria = parseInt(id_categoriaRaw);
+      try {
+        await categoriaDAO.adicionarCategoriaAoLivro(id_livro, id_categoria);
+      } catch (err) {
+        if (!err.message.includes("categoria já associada")) {
+          console.error(err);
+        }
+      }
+    }
+  }
 
-  return true;
-}
+  // Associa editora (única)
+  if (novo_livro.id_editora) {
+    const id_editora = parseInt(novo_livro.id_editora);
+    await editoraDAO.associarEditoraAoLivro(id_livro, id_editora);
+  }
+
+  return { sucesso: true, id_livro };
+};
+
+
 
 // Função responsável por remover um livro pelo 'id_livro'
 exports.removerLivro = async function (id_livro) {
@@ -112,3 +163,10 @@ exports.atualizarLivro = async function (livro) {
     throw erro;
   }
 }
+
+exports.removerLivro = async function (id_livro) {
+  if (!id_livro) {
+    throw new Error("id_livro não pode ser undefined");
+  }
+  return await livroDAO.removerLivroPeloId_livro(id_livro);
+};

@@ -16,12 +16,13 @@ exports.procurarAutorPeloId_autorDoLivro = async function(id_livro, id_autor) {
     `SELECT * FROM autores_do_livro WHERE id_livro = $1 AND id_autor = $2`,
     [id_livro, id_autor]
   );
-  return rows;
+  return rows[0] || null;
 };
 
 exports.adicionarAutorAoLivro = async function(autorDoLivro) {
   const sql = "INSERT INTO autores_do_livro (id_livro, id_autor, is_ativo) VALUES ($1, $2, $3)";
   await db.query(sql, [autorDoLivro.id_livro, autorDoLivro.id_autor, autorDoLivro.is_ativo]);
+  return true;
 };
 
 exports.reativarAutorNoLivro = async function(id_livro, id_autor) {
@@ -29,6 +30,7 @@ exports.reativarAutorNoLivro = async function(id_livro, id_autor) {
     `UPDATE autores_do_livro SET is_ativo = true WHERE id_livro = $1 AND id_autor = $2`,
     [id_livro, id_autor]
   );
+  return true;
 };
 
 exports.removerAutorPeloId_autor = async function(id_livro, id_autor) {
@@ -36,4 +38,5 @@ exports.removerAutorPeloId_autor = async function(id_livro, id_autor) {
     `UPDATE autores_do_livro SET is_ativo = false WHERE id_livro = $1 AND id_autor = $2`,
     [id_livro, id_autor]
   );
+  return true;
 };

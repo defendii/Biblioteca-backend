@@ -136,7 +136,7 @@ app.put('/atualizarUsuario', function (req, res) {
 
 
 //autores
-app.get('/listarAutores',async function (req, res) {
+app.get('/listarAutores', async function (req, res) {
   try {
     const resp = await autoresController.listarAutores();
     res.json(resp);
@@ -284,8 +284,8 @@ app.post('/cadastrarLivro', function (req, res) {
   };
 
   livroController.criarLivro(novo_livro)
-    .then(resp => {
-      res.json({ mensagem: resp });
+    .then(id_livro => {
+      res.json({ id_livro });
     })
     .catch(err => {
       res.status(500).json({ error: 'Erro ao cadastrar livro', err });
@@ -293,9 +293,18 @@ app.post('/cadastrarLivro', function (req, res) {
 
 });
 
-app.post('/removerLivro', function (req, res) {
-  const resultado = livroController.removerLivro(req.query.username);
-  resultado.then(resp => { res.redirect('/listarLivros'); });
+app.post('/removerLivro', async function (req, res) {
+  try {
+    const id_livro = req.body.id_livro;  // ajusta conforme o nome do campo
+    if (!id_livro) {
+      return res.status(400).send("id_livro não enviado");
+    }
+    await livroController.removerLivro(parseInt(id_livro));
+    res.redirect('/listarLivros');
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Erro ao remover livro");
+  }
 });
 
 app.put('/atualizarLivro', function (req, res) {
@@ -489,7 +498,8 @@ app.get('/listaAutoresDoLivro/:id_livro', async (req, res) => {
 app.post('/associarAutorAoLivro', async (req, res) => {
   try {
     const { id_livro, id_autor } = req.body;
-    const erros = await autoresDoLivro.adicionarAutorAoLivro({ id_livro, id_autor, is_ativo: 1 });
+
+    const erros = await autoresDoLivro.adicionarAutorAoLivro({ id_livro, id_autor, is_ativo: true });
 
     if (erros.length > 0) {
       return res.status(400).json({ erro: 'Erro ao associar autor ao livro', detalhes: erros });
@@ -526,13 +536,18 @@ app.get('/listarEditoraDoLivro/:id_livro', async (req, res) => {
 });
 
 app.post('/associarEditoraAoLivro', async (req, res) => {
-  try {
+    try {
     const { id_livro, id_editora } = req.body;
-    await editoraDoLivro.associarEditoraAoLivro({ id_livro, id_editora });
+    const erros = await editoraDoLivro.associarEditoraAoLivro({ id_livro, id_editora });
+
+    if (erros.length > 0) {
+      return res.status(400).json({ erro: 'Erro ao associar editora ao livro', detalhes: erros });
+    }
+
     res.json({ mensagem: 'Editora associada ao livro com sucesso!' });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ erro: 'Erro ao associar editora ao livro', detalhes: error.message });
+    res.status(500).json({ erro: 'Erro interno no servidor', detalhes: error.message });
   }
 });
 
@@ -560,19 +575,28 @@ app.get('/listarCategoriasDoLivro/:id_livro', async (req, res) => {
 
 app.post('/associarCategoriaAoLivro', async (req, res) => {
   try {
-    const { id_livro, id_categoria } = req.body;
-    const erros = await categoriasDoLivro.adicionarCategoriaAoLivro({ id_livro, id_categoria });
+    let { id_livro, id_categoria } = req.body;
+    id_livro = parseInt(id_livro);
+    id_categoria = parseInt(id_categoria);
 
-    if (erros.length > 0) {
-      return res.status(400).json({ erro: 'Erro ao associar categoria ao livro', detalhes: erros });
+    if (isNaN(id_livro) || isNaN(id_categoria)) {
+      return res.status(400).json({ erro: "id_livro ou id_categoria inválidos" });
     }
 
-    res.json({ mensagem: 'Categoria associada ao livro com sucesso!' });
+    const erros = await categoriasDoLivro.adicionarCategoriaAoLivroPorIds(id_livro, id_categoria);
+
+    if (erros.length > 0) {
+      return res.status(400).json({ erro: erros });
+    }
+
+    res.json({ mensagem: "Categoria associada com sucesso!" });
+
   } catch (error) {
     console.error(error);
-    res.status(500).json({ erro: 'Erro interno no servidor', detalhes: error.message });
+    res.status(500).json({ erro: "Erro interno no servidor" });
   }
 });
+
 
 app.post('/removerCategoriaDoLivro', async (req, res) => {
   try {

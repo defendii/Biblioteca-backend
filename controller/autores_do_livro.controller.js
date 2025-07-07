@@ -7,13 +7,13 @@ exports.listarAutoresDoLivroPorLivro = async function (id_livro) {
 exports.adicionarAutorAoLivro = async function (novo_autorDoLivro) {
   const erros = [];
 
-  const associacoes = await autoresDoLivroDAO.procurarAutorPeloId_autorDoLivro(
+  const associacao = await autoresDoLivroDAO.procurarAutorPeloId_autorDoLivro(
     novo_autorDoLivro.id_livro,
     novo_autorDoLivro.id_autor
   );
 
-  if (associacoes.length > 0) {
-    if (associacoes[0].is_ativo === true) {
+  if (associacao) {
+    if (associacao.is_ativo === true) {
       erros.push("Erro: autor já associado a este livro!");
       return erros;
     } else {

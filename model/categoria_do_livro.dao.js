@@ -1,6 +1,6 @@
 const db = require("../config/database");
 
-exports.listarCategoriasDoLivro = async function(id_livro) {
+exports.listarCategoriasDoLivro = async function (id_livro) {
   const { rows } = await db.query(
     `SELECT c.id_categoria, c.nome_categoria, c.is_ativo
      FROM categoria c
@@ -11,16 +11,16 @@ exports.listarCategoriasDoLivro = async function(id_livro) {
   return rows;
 };
 
-exports.buscarVinculoCategoriaLivro = async function(id_livro, id_categoria) {
+exports.buscarVinculoCategoriaLivro = async function (id_livro, id_categoria) {
   const { rows } = await db.query(
     `SELECT * FROM categoria_do_livro
      WHERE id_livro = $1 AND id_categoria = $2`,
     [id_livro, id_categoria]
   );
-  return rows[0];
-}
+  return rows[0]; 
+};
 
-exports.adicionarCategoriaAoLivro = async function(id_livro, id_categoria) {
+exports.adicionarCategoriaAoLivro = async function (id_livro, id_categoria) {
   const vinculo = await this.buscarVinculoCategoriaLivro(id_livro, id_categoria);
 
   if (vinculo) {
@@ -31,9 +31,9 @@ exports.adicionarCategoriaAoLivro = async function(id_livro, id_categoria) {
          WHERE id_livro = $1 AND id_categoria = $2`,
         [id_livro, id_categoria]
       );
-      return "Categoria reativada com sucesso!";
+      return true;
     } else {
-      throw new Error("Erro: categoria já associada a este livro!");
+      throw new Error("Categoria já está associada a este livro.");
     }
   }
 
@@ -42,10 +42,10 @@ exports.adicionarCategoriaAoLivro = async function(id_livro, id_categoria) {
      VALUES ($1, $2, true)`,
     [id_livro, id_categoria]
   );
-  return "Categoria associada ao livro com sucesso!";
-}
+  return true;
+};
 
-exports.removerCategoriaDoLivro = async function(id_livro, id_categoria) {
+exports.removerCategoriaDoLivro = async function (id_livro, id_categoria) {
   await db.query(
     `UPDATE categoria_do_livro
      SET is_ativo = false
@@ -53,4 +53,4 @@ exports.removerCategoriaDoLivro = async function(id_livro, id_categoria) {
     [id_livro, id_categoria]
   );
   return "Categoria removida do livro com sucesso!";
-}
+};
