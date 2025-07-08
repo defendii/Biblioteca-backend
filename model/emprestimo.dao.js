@@ -5,6 +5,7 @@ const conexao = require("../config/database");
 exports.listarEmprestimo = async function () {
   const { rows } = await db.query(`
     SELECT e.id_emprestimo, e.data_emprestimo, e.data_devolucao, e.is_ativo,
+           e.foi_devolvido, -- <-- esta linha foi adicionada
            u.nome AS nome_usuario, u.registro_academico,
            l.titulo, l.isbn, l.edicao, l.qtde_disponivel, l.caminho_foto_capa
     FROM emprestimo e

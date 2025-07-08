@@ -50,9 +50,18 @@ exports.criarEmprestimo = async function (novo_emprestimo) {
     return erros;
   }
 
-  const hoje = new Date();
-  const dataDevolucao = new Date(hoje);
-  dataDevolucao.setDate(hoje.getDate() + diasPrazo);
+  // Ajuste para aceitar datas enviadas ou usar padrão
+  let dataEmprestimo = novo_emprestimo.data_emprestimo
+    ? new Date(novo_emprestimo.data_emprestimo)
+    : new Date();
+
+  let dataDevolucao;
+  if (novo_emprestimo.data_devolucao) {
+    dataDevolucao = new Date(novo_emprestimo.data_devolucao);
+  } else {
+    dataDevolucao = new Date(dataEmprestimo);
+    dataDevolucao.setDate(dataEmprestimo.getDate() + diasPrazo);
+  }
 
   const idLimpo = novo_emprestimo.id_livro.trim();
 
@@ -75,14 +84,14 @@ exports.criarEmprestimo = async function (novo_emprestimo) {
     return erros;
   }
 
-  novo_emprestimo.data_emprestimo = hoje.toISOString().split("T")[0];
+  novo_emprestimo.data_emprestimo = dataEmprestimo.toISOString().split("T")[0];
   novo_emprestimo.data_devolucao = dataDevolucao.toISOString().split("T")[0];
 
   await emprestimoDAO.criarEmprestimo(novo_emprestimo);
 
-  const livroCompleto = await livroDAO.procurarLivroPeloId(novo_emprestimo.id_livro)
-  const livro = livroCompleto[0]
-  const usuarioCompleto = usuario[0]
+  const livroCompleto = await livroDAO.procurarLivroPeloId(novo_emprestimo.id_livro);
+  const livro = livroCompleto[0];
+  const usuarioCompleto = usuario[0];
 
   const tituloLivro = livro.titulo || livro.nome || "Título não encontrado";
 
@@ -97,6 +106,7 @@ exports.criarEmprestimo = async function (novo_emprestimo) {
 
   return [];
 };
+
 
 // Remover empréstimo e gerar dívida se necessário
 exports.removerEmprestimo = async function (id_emprestimo) {
