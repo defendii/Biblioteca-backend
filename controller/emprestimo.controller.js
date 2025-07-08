@@ -6,6 +6,7 @@ const enviarEmail = require('../config/email')
 
 // Listar todos os empréstimos
 exports.listarEmprestimo = async function () {
+  await exports.verificarDividasPendentes(); 
   return await emprestimoDAO.listarEmprestimo();
 };
 
@@ -140,3 +141,31 @@ exports.removerEmprestimo = async function (id_emprestimo) {
 exports.listarEmprestimosDoUsuario = async function (id_usuario) {
   return await emprestimoDAO.listarEmprestimosDoUsuario(id_usuario);
 };
+
+exports.verificarDividasPendentes = async function () {
+  const emprestimos = await emprestimoDAO.listarEmprestimo();
+
+  const hoje = new Date();
+
+  for (const emprestimo of emprestimos) {
+    const dataDevolucao = new Date(emprestimo.data_devolucao);
+    const estaAtrasado = hoje > dataDevolucao;
+    const foiDevolvido = emprestimo.foi_devolvido;
+
+    if (estaAtrasado && !foiDevolvido) {
+      const diasAtraso = Math.floor((hoje - dataDevolucao) / (1000 * 60 * 60 * 24));
+      
+      const dividas = await dividaDAO.procurarDividaPorIdEmprestimo(emprestimo.id_emprestimo);
+      const jaTemDivida = dividas.length > 0;
+
+      if (!jaTemDivida) {
+        await dividaDAO.criarDivida({
+          id_emprestimo: emprestimo.id_emprestimo,
+          valor_multa: diasAtraso * 1,
+          dia_atual: hoje.toISOString().split("T")[0],
+          is_ativo: true,
+        });
+      }
+    }
+  }
+}

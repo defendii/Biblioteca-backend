@@ -34,3 +34,11 @@ exports.removerDividaPeloId_divida = async function(id_divida){
     
     return rows;
 }
+
+exports.procurarDividaPorIdEmprestimo = async function(id_emprestimo){
+  const { rows } = await db.query(
+    `SELECT * FROM divida WHERE id_emprestimo = $1 AND is_ativo = true`,
+    [id_emprestimo]
+  );
+  return rows;
+};
