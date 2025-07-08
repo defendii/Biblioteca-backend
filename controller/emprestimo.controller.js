@@ -3,6 +3,7 @@ const livroDAO = require("../model/livro.dao");
 const usuarioDAO = require("../model/usuario.dao");
 const dividaDAO = require("../model/divida.dao");
 const enviarEmail = require('../config/email')
+const db = require("../config/database");
 
 // Listar todos os empréstimos
 exports.listarEmprestimo = async function () {
@@ -140,6 +141,16 @@ exports.removerEmprestimo = async function (id_emprestimo) {
 
 exports.listarEmprestimosDoUsuario = async function (id_usuario) {
   return await emprestimoDAO.listarEmprestimosDoUsuario(id_usuario);
+};
+
+exports.devolverEmprestimo = async function (id_emprestimo) {
+  const dataDevolucaoEfetiva = new Date().toISOString().split("T")[0]; // data atual em formato yyyy-mm-dd
+  const sql = `
+    UPDATE emprestimo 
+    SET foi_devolvido = true, data_devolucao_efetiva = $2
+    WHERE id_emprestimo = $1
+  `;
+  await db.query(sql, [id_emprestimo, dataDevolucaoEfetiva]);
 };
 
 exports.verificarDividasPendentes = async function () {

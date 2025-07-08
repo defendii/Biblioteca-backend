@@ -5,13 +5,13 @@ const conexao = require("../config/database");
 exports.listarEmprestimo = async function () {
   const { rows } = await db.query(`
     SELECT e.id_emprestimo, e.data_emprestimo, e.data_devolucao, e.is_ativo,
-           e.foi_devolvido, -- <-- esta linha foi adicionada
-           u.nome AS nome_usuario, u.registro_academico,
-           l.titulo, l.isbn, l.edicao, l.qtde_disponivel, l.caminho_foto_capa
-    FROM emprestimo e
-    JOIN usuario u ON e.id_usuario = u.id_usuario
-    JOIN livro l ON e.id_livro = l.id_livro
-    WHERE e.is_ativo = true
+       e.foi_devolvido, e.data_devolucao_efetiva,  -- incluir esta linha
+       u.nome AS nome_usuario, u.registro_academico,
+       l.titulo, l.isbn, l.edicao, l.qtde_disponivel, l.caminho_foto_capa
+FROM emprestimo e
+JOIN usuario u ON e.id_usuario = u.id_usuario
+JOIN livro l ON e.id_livro = l.id_livro
+WHERE e.is_ativo = true
   `);
   return rows;
 };
@@ -32,11 +32,15 @@ exports.criarEmprestimo = async function (novo_emprestimo) {
 
   return "Empréstimo cadastrado com sucesso!";
 };
+
 exports.marcarComoDevolvido = async (id_emprestimo) => {
+  const hoje = new Date().toISOString().split("T")[0];
   const sql = `
-    UPDATE emprestimo SET foi_devolvido = true WHERE id_emprestimo = $1
+    UPDATE emprestimo 
+    SET foi_devolvido = true, data_devolucao_efetiva = $2
+    WHERE id_emprestimo = $1
   `;
-  return await db.query(sql, [id_emprestimo]);
+  return await db.query(sql, [id_emprestimo, hoje]);
 };
 
 

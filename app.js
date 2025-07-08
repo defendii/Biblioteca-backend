@@ -293,6 +293,8 @@ app.post('/removerCategoria', function (req, res) {
 });
 
 
+
+
 // livro
 app.get("/livrosCompletos", livroController.listarLivrosComAssociacoes);
 
@@ -391,6 +393,17 @@ app.post("/cadastrarEmprestimo", async (req, res) => {
   } catch (erro) {
     console.error("Erro ao cadastrar empréstimo:", erro);
     res.status(500).json(["Erro interno ao cadastrar empréstimo."]);
+  }
+});
+
+
+app.post("/devolverEmprestimo", async (req, res) => {
+  try {
+    const { id_emprestimo } = req.body;
+    await emprestimoController.devolverEmprestimo(id_emprestimo);
+    res.json({ sucesso: true });
+  } catch (err) {
+    res.status(500).json({ erro: err.message });
   }
 });
 
