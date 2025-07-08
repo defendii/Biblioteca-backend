@@ -479,6 +479,8 @@ app.post('/removerDivida', function (req, res) {
   resultado.then(resp => { res.redirect('/listar'); });
 });
 
+app.post('/pagarDivida', dividaController.marcarComoPaga);
+
 //cursos dos usuarios
 
 app.get('/listaCursosDosUsuarios/:id_usuario', async function (req, res) {

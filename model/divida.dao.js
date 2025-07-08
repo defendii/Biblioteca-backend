@@ -42,3 +42,10 @@ exports.procurarDividaPorIdEmprestimo = async function(id_emprestimo){
   );
   return rows;
 };
+
+exports.marcarDividaComoPaga = async function (id_emprestimo) {
+  await db.query(
+    `UPDATE divida SET foi_pago = true WHERE id_emprestimo = $1`,
+    [id_emprestimo]
+  );
+};

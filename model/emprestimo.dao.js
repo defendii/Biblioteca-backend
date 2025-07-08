@@ -4,14 +4,28 @@ const conexao = require("../config/database");
 // Listar todos os empréstimos
 exports.listarEmprestimo = async function () {
   const { rows } = await db.query(`
-    SELECT e.id_emprestimo, e.data_emprestimo, e.data_devolucao, e.is_ativo,
-       e.foi_devolvido, e.data_devolucao_efetiva,  -- incluir esta linha
-       u.nome AS nome_usuario, u.registro_academico,
-       l.titulo, l.isbn, l.edicao, l.qtde_disponivel, l.caminho_foto_capa
+    SELECT 
+  e.id_emprestimo,
+  e.data_emprestimo,
+  e.data_devolucao,
+  e.data_devolucao_efetiva,
+  e.is_ativo,
+  u.nome AS nome_usuario,
+  u.registro_academico,
+  l.titulo,
+  CASE
+    WHEN d.foi_pago = true THEN true
+    ELSE false
+  END AS foi_pago,
+  CASE
+    WHEN e.data_devolucao_efetiva IS NOT NULL THEN true
+    ELSE false
+  END AS foi_devolvido
 FROM emprestimo e
-JOIN usuario u ON e.id_usuario = u.id_usuario
-JOIN livro l ON e.id_livro = l.id_livro
-WHERE e.is_ativo = true
+JOIN usuario u ON u.id_usuario = e.id_usuario
+JOIN livro l ON l.id_livro = e.id_livro
+LEFT JOIN divida d ON d.id_emprestimo = e.id_emprestimo;
+
   `);
   return rows;
 };

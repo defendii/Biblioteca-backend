@@ -27,3 +27,20 @@ exports.criarDivida = async function(nova_divida){
 exports.removerDivida = async function(id_divida){
     return await dividaDAO.removerDividaPeloId_divida(id_divida);
 }
+
+exports.marcarComoPaga = async (req, res) => {
+  try {
+    const { id_emprestimo } = req.body;
+
+    if (!id_emprestimo) {
+      return res.status(400).json({ erro: "ID do empréstimo é obrigatório" });
+    }
+
+    await dividaDAO.marcarDividaComoPaga(id_emprestimo);
+    res.json({ mensagem: "Dívida paga com sucesso!" });
+
+  } catch (erro) {
+    console.error("Erro ao pagar dívida:", erro);
+    res.status(500).json({ erro: "Erro ao pagar dívida" });
+  }
+};
