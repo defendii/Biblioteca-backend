@@ -7,7 +7,7 @@ const db = require("../config/database");
 
 // Listar todos os empréstimos
 exports.listarEmprestimo = async function () {
-  await exports.verificarDividasPendentes(); 
+  await exports.verificarDividasPendentes();
   return await emprestimoDAO.listarEmprestimo();
 };
 
@@ -36,6 +36,7 @@ exports.criarEmprestimo = async function (novo_emprestimo) {
 
   const erros = [];
 
+  
   const usuario = await usuarioDAO.procurarUsuarioPeloRegistro_academico(novo_emprestimo.registro_academico);
   if (!usuario || usuario.length === 0) {
     erros.push("Usuário não encontrado.");
@@ -54,6 +55,13 @@ exports.criarEmprestimo = async function (novo_emprestimo) {
     erros.push("Tipo de usuário inválido.");
     return erros;
   }
+
+  const temDividaPendente = await dividaDAO.usuarioTemDividaNaoPaga(idUsuario);
+  if (temDividaPendente) {
+    erros.push("Usuário possui multas não pagas. Regularize antes de pegar novos livros.");
+    return erros;
+  }
+
 
   const totalEmprestimosAtivos = await emprestimoDAO.contarEmprestimosAtivosPorUsuario(idUsuario);
   if (totalEmprestimosAtivos >= limiteEmprestimos) {
@@ -196,7 +204,7 @@ exports.verificarDividasPendentes = async function () {
 
     if (estaAtrasado && !foiDevolvido) {
       const diasAtraso = Math.floor((hoje - dataDevolucao) / (1000 * 60 * 60 * 24));
-      
+
       const dividas = await dividaDAO.procurarDividaPorIdEmprestimo(emprestimo.id_emprestimo);
       const jaTemDivida = dividas.length > 0;
 

@@ -49,3 +49,14 @@ exports.marcarDividaComoPaga = async function (id_emprestimo) {
     [id_emprestimo]
   );
 };
+
+exports.usuarioTemDividaNaoPaga = async function (id_usuario) {
+  const query = `
+    SELECT COUNT(*) AS total
+    FROM divida d
+    JOIN emprestimo e ON e.id_emprestimo = d.id_emprestimo
+    WHERE e.id_usuario = $1 AND d.foi_pago = false
+  `;
+  const { rows } = await db.query(query, [id_usuario]);
+  return parseInt(rows[0].total, 10) > 0;
+};
