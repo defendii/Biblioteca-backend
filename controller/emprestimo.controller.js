@@ -31,7 +31,9 @@ Equipe da Biblioteca AJL
   console.log("Enviando email para:", usuario.email);
 }
 
+
 exports.criarEmprestimo = async function (novo_emprestimo) {
+
   const erros = [];
 
   const usuario = await usuarioDAO.procurarUsuarioPeloRegistro_academico(novo_emprestimo.registro_academico);
@@ -41,6 +43,23 @@ exports.criarEmprestimo = async function (novo_emprestimo) {
   }
 
   const tipoUsuario = (usuario[0].tipo || "").trim().toLowerCase();
+
+  const idUsuario = usuario[0].id_usuario;
+  let limiteEmprestimos;
+  if (tipoUsuario === "professor") {
+    limiteEmprestimos = 5;
+  } else if (tipoUsuario === "aluno") {
+    limiteEmprestimos = 3;
+  } else {
+    erros.push("Tipo de usuário inválido.");
+    return erros;
+  }
+
+  const totalEmprestimosAtivos = await emprestimoDAO.contarEmprestimosAtivosPorUsuario(idUsuario);
+  if (totalEmprestimosAtivos >= limiteEmprestimos) {
+    erros.push(`Usuário do tipo ${tipoUsuario} já possui ${limiteEmprestimos} ou mais livros emprestados. Devolva algum para realizar novo empréstimo.`);
+    return erros;
+  }
 
   let diasPrazo;
   if (tipoUsuario === "professor") {
@@ -151,6 +170,18 @@ exports.devolverEmprestimo = async function (id_emprestimo) {
     WHERE id_emprestimo = $1
   `;
   await db.query(sql, [id_emprestimo, dataDevolucaoEfetiva]);
+};
+
+exports.contarEmprestimosAtivosDoUsuario = async function (req, res) {
+  const id_usuario = req.params.id_usuario;
+
+  try {
+    const total = await emprestimoDAO.contarEmprestimosAtivosPorUsuario(id_usuario);
+    res.json({ count: total });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ erro: "Erro ao contar empréstimos ativos" });
+  }
 };
 
 exports.verificarDividasPendentes = async function () {

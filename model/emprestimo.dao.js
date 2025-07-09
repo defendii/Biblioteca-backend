@@ -107,3 +107,13 @@ exports.listarEmprestimosDoUsuario = async function (id_usuario) {
   }
 };
 
+exports.contarEmprestimosAtivosPorUsuario = async function (id_usuario) {
+  const query = `
+    SELECT COUNT(*) AS total
+    FROM emprestimo
+    WHERE id_usuario = $1 AND foi_devolvido = false
+  `;
+  const { rows } = await db.query(query, [id_usuario]);
+  return parseInt(rows[0].total, 10);
+};
+
