@@ -43,17 +43,8 @@ exports.criarLivro = async function (novo_livro) {
     return { sucesso: false, erros };
   }
 
-  // Converte is_ativo para boolean (se for string)
-  if (typeof novo_livro.is_ativo === "string") {
-    novo_livro.is_ativo = novo_livro.is_ativo.toLowerCase() === "true";
-  } else {
-    novo_livro.is_ativo = Boolean(novo_livro.is_ativo);
-  }
-
-  // Cria o livro na tabela livro e obtém id_livro
   const id_livro = await livroDAO.criarLivro(novo_livro);
 
-  // Salva imagem
   if (novo_livro.imagem) {
     const caminho = path.join(__dirname, '..', 'imagens/');
     const extensao_arquivo = novo_livro.imagem.name.split(".").pop();
@@ -65,7 +56,6 @@ exports.criarLivro = async function (novo_livro) {
     }
   }
 
-  // Associa autores (array de ids)
   if (novo_livro.autores && Array.isArray(novo_livro.autores)) {
     for (const id_autorRaw of novo_livro.autores) {
       const id_autor = parseInt(id_autorRaw);
@@ -78,7 +68,6 @@ exports.criarLivro = async function (novo_livro) {
     }
   }
 
-  // Associa categorias (array de ids)
   if (novo_livro.categorias && Array.isArray(novo_livro.categorias)) {
     for (const id_categoriaRaw of novo_livro.categorias) {
       const id_categoria = parseInt(id_categoriaRaw);
@@ -92,7 +81,6 @@ exports.criarLivro = async function (novo_livro) {
     }
   }
 
-  // Associa editora (única)
   if (novo_livro.id_editora) {
     const id_editora = parseInt(novo_livro.id_editora);
     await editoraDAO.associarEditoraAoLivro(id_livro, id_editora);
@@ -171,26 +159,6 @@ exports.removerLivro = async function (id_livro) {
   return await livroDAO.removerLivroPeloId_livro(id_livro);
 };
 
-
-exports.atualizarLivro = async function (livro) {
-  try {
-    const livroAtualizado = await livroDAO.atualizarLivroPeloId(livro);
-
-    const autores = await autorDAO.listarAutoresDoLivroPorLivro(livro.id_livro);
-    const categorias = await categoriaDAO.listarCategoriasDoLivro(livro.id_livro);
-    const editora = await editoraDAO.listarEditoraDoLivro(livro.id_livro);
-
-    return {
-      ...livroAtualizado,
-      autores,
-      categorias,
-      editora,
-    };
-  } catch (err) {
-    console.error(err);
-    throw err;
-  }
-};
 
 
 exports.buscarLivroCompletoPorId = async function(id_livro) {

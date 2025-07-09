@@ -345,364 +345,374 @@ app.post('/removerLivro', async function (req, res) {
   }
 });
 
-app.put('/atualizarLivro', async (req, res) => {
-  try {
-    const livroAtualizado = await livroController.atualizarLivro(req.body);
+app.put('/atualizarLivro', function (req, res) {
+  const imagem = req.files?.imagem;
 
-    if (!livroAtualizado) {
-      return res.status(404).json({ mensagem: 'Livro não encontrado para atualização.' });
+  const livroAtualizado = {
+    id_livro: req.body.id_livro,
+    titulo: req.body.titulo,
+    qtde_disponivel: req.body.qtde_disponivel,
+    isbn: req.body.isbn,
+    edicao: req.body.edicao,
+    is_ativo: req.body.is_ativo,
+    imagem: imagem,
+  };
+
+  livroController.atualizarLivro(livroAtualizado)
+    .then(resp => {
+      if (!resp) {
+        return res.status(404).json({ mensagem: 'Livro não encontrado para atualização.' });
+      }
+      res.json({ mensagem: 'Livro atualizado com sucesso!', usuario: resp });
+    })
+    .catch(err => {
+      console.error('Erro ao atualizar livro:', err);
+      res.status(500).json({ error: 'Erro ao atualizar livro', err });
+    });
+});
+
+
+  //emprestimo
+
+  app.post("/cadastrarEmprestimo", async (req, res) => {
+    try {
+      const { registro_academico, id_livro, data_emprestimo, data_devolucao } = req.body;
+      const usuario = await usuarioDAO.procurarUsuarioPeloRegistro_academico(registro_academico);
+      if (!usuario || usuario.length === 0) {
+        return res.status(400).json(["Usuário não encontrado."]);
+      }
+
+      const id_usuario = usuario[0].id_usuario;
+
+      const novoEmprestimo = {
+        registro_academico,
+        id_usuario,
+        id_livro,
+        data_emprestimo,
+        data_devolucao,
+        is_ativo: true,
+      };
+
+      const erros = await emprestimoController.criarEmprestimo(novoEmprestimo);
+
+      if (erros.length > 0) {
+        return res.status(400).json(erros);
+      }
+
+      res.json([]);
+    } catch (erro) {
+      console.error("Erro ao cadastrar empréstimo:", erro);
+      res.status(500).json(["Erro interno ao cadastrar empréstimo."]);
     }
-
-    res.json({ livro: livroAtualizado, mensagem: 'Livro atualizado com sucesso!' });
-  } catch (err) {
-    console.error('Erro ao atualizar livro:', err);
-    res.status(500).json({ error: 'Erro ao atualizar livro', details: err.message });
-  }
-});
+  });
 
 
-
-//emprestimo
-
-app.post("/cadastrarEmprestimo", async (req, res) => {
-  try {
-    const { registro_academico, id_livro, data_emprestimo, data_devolucao } = req.body;
-    const usuario = await usuarioDAO.procurarUsuarioPeloRegistro_academico(registro_academico);
-    if (!usuario || usuario.length === 0) {
-      return res.status(400).json(["Usuário não encontrado."]);
+  app.post("/devolverEmprestimo", async (req, res) => {
+    try {
+      const { id_emprestimo } = req.body;
+      await emprestimoController.devolverEmprestimo(id_emprestimo);
+      res.json({ sucesso: true });
+    } catch (err) {
+      res.status(500).json({ erro: err.message });
     }
+  });
 
-    const id_usuario = usuario[0].id_usuario;
-
-    const novoEmprestimo = {
-      registro_academico,
-      id_usuario,
-      id_livro,
-      data_emprestimo,
-      data_devolucao,
-      is_ativo: true,
-    };
-
-    const erros = await emprestimoController.criarEmprestimo(novoEmprestimo);
-
-    if (erros.length > 0) {
-      return res.status(400).json(erros);
+  // Listar todos os empréstimos
+  app.get('/listarEmprestimo', async (req, res) => {
+    try {
+      const emprestimos = await emprestimoController.listarEmprestimo();
+      res.json(emprestimos);
+    } catch (err) {
+      console.error('Erro ao listar empréstimos:', err);
+      res.status(500).json({ error: 'Erro interno do servidor' });
     }
+  });
 
-    res.json([]);
-  } catch (erro) {
-    console.error("Erro ao cadastrar empréstimo:", erro);
-    res.status(500).json(["Erro interno ao cadastrar empréstimo."]);
-  }
-});
+  app.get('/historicoEmprestimos/:id_usuario', async (req, res) => {
+    try {
+      const id_usuario = parseInt(req.params.id_usuario);
+      const historico = await emprestimoController.listarEmprestimosDoUsuario(id_usuario);
+      res.json(historico);
+    } catch (erro) {
+      console.error("Erro ao buscar histórico do usuário:", erro);
+      res.status(500).json({ erro: "Erro ao buscar histórico do usuário" });
+    }
+  });
+
+  app.post('/removerEmprestimo', async (req, res) => {
+    try {
+      const resultado = await emprestimoController.removerEmprestimo(req.body.id_emprestimo);
+      res.json({ mensagem: 'Empréstimo removido com sucesso!', resultado });
+    } catch (err) {
+      console.error('Erro ao remover empréstimo:', err);
+      res.status(500).json({ error: 'Erro interno do servidor' });
+    }
+  });
+
+  app.post('/devolverEmprestimo', async (req, res) => {
+    try {
+      const { id_emprestimo } = req.body;
+      if (!id_emprestimo) return res.status(400).json({ erro: "ID não enviado" });
+
+      await emprestimoDAO.marcarComoDevolvido(id_emprestimo);
+
+      res.json({ mensagem: "Devolução registrada com sucesso." });
+    } catch (erro) {
+      console.error(erro);
+      res.status(500).json({ erro: "Erro no servidor" });
+    }
+  });
 
 
-app.post("/devolverEmprestimo", async (req, res) => {
-  try {
-    const { id_emprestimo } = req.body;
-    await emprestimoController.devolverEmprestimo(id_emprestimo);
-    res.json({ sucesso: true });
-  } catch (err) {
-    res.status(500).json({ erro: err.message });
-  }
-});
+  //divida
+  app.get('/listarDivida', function (req, res) {
+    const resp = usuarioController.listarDivida();
+    res.json(resp);
+  });
 
-// Listar todos os empréstimos
-app.get('/listarEmprestimo', async (req, res) => {
-  try {
-    const emprestimos = await emprestimoController.listarEmprestimo();
-    res.json(emprestimos);
-  } catch (err) {
-    console.error('Erro ao listar empréstimos:', err);
-    res.status(500).json({ error: 'Erro interno do servidor' });
-  }
-});
+  app.post('/cadastrarDivida', function (req, res) {
+    const nova_divida = new divida(null, req.body.id_emprestimo, req.body.valor_multa, req.body.dia_atual, req.body.is_ativo);
 
-app.get('/historicoEmprestimos/:id_usuario', async (req, res) => {
-  try {
+    dividaController.criarDivida(nova_divida)
+      .then(resp => {
+        res.json({ mensagem: resp });
+      })
+      .catch(err => {
+        console.error("Erro ao cadastrar divida:", err);
+        res.status(500).json({ error: 'Erro ao cadastrar dividqa' });
+      });
+
+  });
+
+  app.post('/removerDivida', function (req, res) {
+    const resultado = dividaController.removerDivida(req.query.id_divida);
+    resultado.then(resp => { res.redirect('/listar'); });
+  });
+
+  app.post('/pagarDivida', dividaController.marcarComoPaga);
+
+  //cursos dos usuarios
+
+  app.get('/listaCursosDosUsuarios/:id_usuario', async function (req, res) {
     const id_usuario = parseInt(req.params.id_usuario);
-    const historico = await emprestimoController.listarEmprestimosDoUsuario(id_usuario);
-    res.json(historico);
-  } catch (erro) {
-    console.error("Erro ao buscar histórico do usuário:", erro);
-    res.status(500).json({ erro: "Erro ao buscar histórico do usuário" });
-  }
-});
 
-app.post('/removerEmprestimo', async (req, res) => {
-  try {
-    const resultado = await emprestimoController.removerEmprestimo(req.body.id_emprestimo);
-    res.json({ mensagem: 'Empréstimo removido com sucesso!', resultado });
-  } catch (err) {
-    console.error('Erro ao remover empréstimo:', err);
-    res.status(500).json({ error: 'Erro interno do servidor' });
-  }
-});
+    try {
+      const cursos = await usuarioController.listarCursoDosUsuarios(id_usuario);
+      res.json(cursos);
+    } catch (err) {
+      res.status(500).json({ erro: 'Erro ao listar cursos do usuário', detalhes: err });
+    }
+  });
 
-app.post('/devolverEmprestimo', async (req, res) => {
-  try {
-    const { id_emprestimo } = req.body;
-    if (!id_emprestimo) return res.status(400).json({ erro: "ID não enviado" });
+  app.post('/associarCursoAoUsuario', async (req, res) => {
+    try {
+      const { id_usuario, id_curso } = req.body;
+      const erros = await cursosUsuariosController.adicionarCursoAoUsuario(id_usuario, id_curso);
 
-    await emprestimoDAO.marcarComoDevolvido(id_emprestimo);
+      if (erros.length > 0) {
+        return res.status(400).json({ erro: "Erro ao associar curso ao usuário", detalhes: erros });
+      }
 
-    res.json({ mensagem: "Devolução registrada com sucesso." });
-  } catch (erro) {
-    console.error(erro);
-    res.status(500).json({ erro: "Erro no servidor" });
-  }
-});
+      res.json({ mensagem: "Curso associado com sucesso!" });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ erro: "Erro interno no servidor", detalhes: error.message });
+    }
+  });
 
-
-//divida
-app.get('/listarDivida', function (req, res) {
-  const resp = usuarioController.listarDivida();
-  res.json(resp);
-});
-
-app.post('/cadastrarDivida', function (req, res) {
-  const nova_divida = new divida(null, req.body.id_emprestimo, req.body.valor_multa, req.body.dia_atual, req.body.is_ativo);
-
-  dividaController.criarDivida(nova_divida)
-    .then(resp => {
-      res.json({ mensagem: resp });
-    })
-    .catch(err => {
-      console.error("Erro ao cadastrar divida:", err);
-      res.status(500).json({ error: 'Erro ao cadastrar dividqa' });
-    });
-
-});
-
-app.post('/removerDivida', function (req, res) {
-  const resultado = dividaController.removerDivida(req.query.id_divida);
-  resultado.then(resp => { res.redirect('/listar'); });
-});
-
-app.post('/pagarDivida', dividaController.marcarComoPaga);
-
-//cursos dos usuarios
-
-app.get('/listaCursosDosUsuarios/:id_usuario', async function (req, res) {
-  const id_usuario = parseInt(req.params.id_usuario);
-
-  try {
-    const cursos = await usuarioController.listarCursoDosUsuarios(id_usuario);
-    res.json(cursos);
-  } catch (err) {
-    res.status(500).json({ erro: 'Erro ao listar cursos do usuário', detalhes: err });
-  }
-});
-
-app.post('/associarCursoAoUsuario', async (req, res) => {
-  try {
+  app.post('/removerCursoDoUsuario', async function (req, res) {
     const { id_usuario, id_curso } = req.body;
-    const erros = await cursosUsuariosController.adicionarCursoAoUsuario(id_usuario, id_curso);
 
-    if (erros.length > 0) {
-      return res.status(400).json({ erro: "Erro ao associar curso ao usuário", detalhes: erros });
+    try {
+      const resultado = await usuarioController.removerCursoDoUsuario(id_usuario, id_curso);
+      res.json({ mensagem: resultado });
+    } catch (err) {
+      res.status(500).json({ erro: 'Erro ao remover curso do usuário', detalhes: err });
     }
+  });
 
-    res.json({ mensagem: "Curso associado com sucesso!" });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ erro: "Erro interno no servidor", detalhes: error.message });
-  }
-});
-
-app.post('/removerCursoDoUsuario', async function (req, res) {
-  const { id_usuario, id_curso } = req.body;
-
-  try {
-    const resultado = await usuarioController.removerCursoDoUsuario(id_usuario, id_curso);
-    res.json({ mensagem: resultado });
-  } catch (err) {
-    res.status(500).json({ erro: 'Erro ao remover curso do usuário', detalhes: err });
-  }
-});
-
-app.get('/listarCursosDoUsuario/:id_usuario', async (req, res) => {
-  try {
-    const cursos = await usuarioDAO.listarCursosDosUsuarios(req.params.id_usuario);
-    res.json(cursos);
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao listar cursos do usuário" });
-  }
-});
-
-
-//Autor do livro
-app.get('/listaAutoresDoLivro/:id_livro', async (req, res) => {
-  try {
-    const id_livro = parseInt(req.params.id_livro);
-    const autores = await autoresDoLivro.listarAutoresDoLivroPorLivro(id_livro);
-    res.json(autores);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ erro: 'Erro ao listar autores do livro', detalhes: error.message });
-  }
-});
-
-app.post('/associarAutorAoLivro', async (req, res) => {
-  try {
-    const { id_livro, id_autor } = req.body;
-
-    const erros = await autoresDoLivro.adicionarAutorAoLivro({ id_livro, id_autor, is_ativo: true });
-
-    if (erros.length > 0) {
-      return res.status(400).json({ erro: 'Erro ao associar autor ao livro', detalhes: erros });
+  app.get('/listarCursosDoUsuario/:id_usuario', async (req, res) => {
+    try {
+      const cursos = await usuarioDAO.listarCursosDosUsuarios(req.params.id_usuario);
+      res.json(cursos);
+    } catch (error) {
+      res.status(500).json({ error: "Erro ao listar cursos do usuário" });
     }
+  });
 
-    res.json({ mensagem: 'Autor associado ao livro com sucesso!' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ erro: 'Erro interno no servidor', detalhes: error.message });
-  }
-});
 
-app.post('/removerAutorDoLivro', async (req, res) => {
-  try {
-    const { id_livro, id_autor } = req.body;
-    await autoresDoLivro.removerAutor(id_livro, id_autor);
-    res.json({ mensagem: 'Associação removida com sucesso' });
-  } catch (err) {
-    res.status(500).json({ erro: 'Erro ao remover associação', detalhes: err.message });
-  }
-});
-
-//Editora do Livro
-app.get('/listarEditoraDoLivro/:id_livro', async (req, res) => {
-  try {
-    const id_livro = parseInt(req.params.id_livro);
-    const editora = await editoraDoLivro.listarEditoraDoLivro(id_livro);
-    res.json(editora);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ erro: 'Erro ao listar editora do livro', detalhes: error.message });
-  }
-});
-
-app.post('/associarEditoraAoLivro', async (req, res) => {
-  try {
-    const { id_livro, id_editora } = req.body;
-    const erros = await editoraDoLivro.associarEditoraAoLivro({ id_livro, id_editora });
-
-    if (erros.length > 0) {
-      return res.status(400).json({ erro: 'Erro ao associar editora ao livro', detalhes: erros });
+  //Autor do livro
+  app.get('/listaAutoresDoLivro/:id_livro', async (req, res) => {
+    try {
+      const id_livro = parseInt(req.params.id_livro);
+      const autores = await autoresDoLivro.listarAutoresDoLivroPorLivro(id_livro);
+      res.json(autores);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ erro: 'Erro ao listar autores do livro', detalhes: error.message });
     }
+  });
 
-    res.json({ mensagem: 'Editora associada ao livro com sucesso!' });
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ erro: 'Erro interno no servidor', detalhes: error.message });
-  }
-});
+  app.post('/associarAutorAoLivro', async (req, res) => {
+    try {
+      const { id_livro, id_autor } = req.body;
 
-app.post('/removerEditoraDoLivro', async (req, res) => {
-  try {
-    const { id_livro } = req.body;
-    const resultado = await editoraDoLivro.removerEditoraDoLivro(id_livro);
-    res.json({ mensagem: resultado });
-  } catch (error) {
-    res.status(500).json({ erro: 'Erro ao remover editora do livro', detalhes: error.message });
-  }
-});
+      const erros = await autoresDoLivro.adicionarAutorAoLivro({ id_livro, id_autor, is_ativo: true });
 
-//categorias do livro
-app.get('/listarCategoriasDoLivro/:id_livro', async (req, res) => {
-  try {
-    const id_livro = parseInt(req.params.id_livro);
-    const categorias = await categoriasDoLivro.listarCategoriasDoLivro(id_livro);
-    res.json(categorias);
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ erro: 'Erro ao listar categorias do livro', detalhes: error.message });
-  }
-});
+      if (erros.length > 0) {
+        return res.status(400).json({ erro: 'Erro ao associar autor ao livro', detalhes: erros });
+      }
 
-app.post('/associarCategoriaAoLivro', async (req, res) => {
-  try {
-    let { id_livro, id_categoria } = req.body;
-    id_livro = parseInt(id_livro);
-    id_categoria = parseInt(id_categoria);
-
-    if (isNaN(id_livro) || isNaN(id_categoria)) {
-      return res.status(400).json({ erro: "id_livro ou id_categoria inválidos" });
+      res.json({ mensagem: 'Autor associado ao livro com sucesso!' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ erro: 'Erro interno no servidor', detalhes: error.message });
     }
+  });
 
-    const erros = await categoriasDoLivro.adicionarCategoriaAoLivroPorIds(id_livro, id_categoria);
-
-    if (erros.length > 0) {
-      return res.status(400).json({ erro: erros });
+  app.post('/removerAutorDoLivro', async (req, res) => {
+    try {
+      const { id_livro, id_autor } = req.body;
+      await autoresDoLivro.removerAutor(id_livro, id_autor);
+      res.json({ mensagem: 'Associação removida com sucesso' });
+    } catch (err) {
+      res.status(500).json({ erro: 'Erro ao remover associação', detalhes: err.message });
     }
+  });
 
-    res.json({ mensagem: "Categoria associada com sucesso!" });
-
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ erro: "Erro interno no servidor" });
-  }
-});
-
-
-app.post('/removerCategoriaDoLivro', async (req, res) => {
-  try {
-    const { id_livro, id_categoria } = req.body;
-    const resultado = await categoriasDoLivro.removerCategoriaDoLivro(id_livro, id_categoria);
-    res.json({ mensagem: resultado });
-  } catch (error) {
-    res.status(500).json({ erro: 'Erro ao remover categoria do livro', detalhes: error.message });
-  }
-});
-
-
-// bibliotecario
-
-// app.get('/listarBibliotecario', async function (req, res) {
-//   try {
-//     const resp = await bibliotecarioController.listarBibliotecario();
-//     res.json(resp);
-//   } catch (error) {
-//     console.error("Erro ao listar bibliotecarios:", error);
-//     res.status(500).json({ error: "Erro ao listar bibliotecarios" });
-//   }
-// });
-
-app.post('/listarBibliotecario', async function (req, res) {
-  try {
-    const { login, senha } = req.body
-    const resultado = await bibliotecarioController.procurarBibliotecarioPeloLogin(login);
-
-    if (!resultado || resultado.length === 0 || resultado[0].senha !== senha) {
-      return res.status(401).json({ message: "Usuário ou senha incorretos" });
+  //Editora do Livro
+  app.get('/listarEditoraDoLivro/:id_livro', async (req, res) => {
+    try {
+      const id_livro = parseInt(req.params.id_livro);
+      const editora = await editoraDoLivro.listarEditoraDoLivro(id_livro);
+      res.json(editora);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ erro: 'Erro ao listar editora do livro', detalhes: error.message });
     }
+  });
 
-    res.json({ sucesso: true, usuario: resultado[0] });
-  } catch (error) {
-    console.error("Erro ao verificar login:", error);
-    res.status(500).json({ message: "Erro no servidor" });
-  }
-});
+  app.post('/associarEditoraAoLivro', async (req, res) => {
+    try {
+      const { id_livro, id_editora } = req.body;
+      const erros = await editoraDoLivro.associarEditoraAoLivro({ id_livro, id_editora });
 
-app.post('/cadastrarBibliotecario', function (req, res) {
-  const novo_bibliotecario = new bibliotecario(null, req.body.login, req.body.senha, req.body.is_ativo);
+      if (erros.length > 0) {
+        return res.status(400).json({ erro: 'Erro ao associar editora ao livro', detalhes: erros });
+      }
 
-  bibliotecarioController.criarBibliotecario(novo_bibliotecario)
-    .then(resp => {
-      res.json({ mensagem: resp });
-    })
-    .catch(err => {
-      res.status(500).json({ error: 'Erro ao cadastrar bibliotecario' });
-    });
+      res.json({ mensagem: 'Editora associada ao livro com sucesso!' });
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ erro: 'Erro interno no servidor', detalhes: error.message });
+    }
+  });
 
-});
+  app.post('/removerEditoraDoLivro', async (req, res) => {
+    try {
+      const { id_livro } = req.body;
+      const resultado = await editoraDoLivro.removerEditoraDoLivro(id_livro);
+      res.json({ mensagem: resultado });
+    } catch (error) {
+      res.status(500).json({ erro: 'Erro ao remover editora do livro', detalhes: error.message });
+    }
+  });
 
-app.post('/removerBibliotecario', function (req, res) {
-  const resultado = bibliotecario.removerBibliotecario(req.query.id_bibliotecario);
-  resultado.then(resp => { res.redirect('/listarBibliotecarios'); });
-});
+  //categorias do livro
+  app.get('/listarCategoriasDoLivro/:id_livro', async (req, res) => {
+    try {
+      const id_livro = parseInt(req.params.id_livro);
+      const categorias = await categoriasDoLivro.listarCategoriasDoLivro(id_livro);
+      res.json(categorias);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ erro: 'Erro ao listar categorias do livro', detalhes: error.message });
+    }
+  });
+
+  app.post('/associarCategoriaAoLivro', async (req, res) => {
+    try {
+      let { id_livro, id_categoria } = req.body;
+      id_livro = parseInt(id_livro);
+      id_categoria = parseInt(id_categoria);
+
+      if (isNaN(id_livro) || isNaN(id_categoria)) {
+        return res.status(400).json({ erro: "id_livro ou id_categoria inválidos" });
+      }
+
+      const erros = await categoriasDoLivro.adicionarCategoriaAoLivroPorIds(id_livro, id_categoria);
+
+      if (erros.length > 0) {
+        return res.status(400).json({ erro: erros });
+      }
+
+      res.json({ mensagem: "Categoria associada com sucesso!" });
+
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ erro: "Erro interno no servidor" });
+    }
+  });
 
 
-app.listen(port, () => {
-  console.log(`Servidor rodando na porta ${port}...`);
-});
+  app.post('/removerCategoriaDoLivro', async (req, res) => {
+    try {
+      const { id_livro, id_categoria } = req.body;
+      const resultado = await categoriasDoLivro.removerCategoriaDoLivro(id_livro, id_categoria);
+      res.json({ mensagem: resultado });
+    } catch (error) {
+      res.status(500).json({ erro: 'Erro ao remover categoria do livro', detalhes: error.message });
+    }
+  });
+
+
+  // bibliotecario
+
+  // app.get('/listarBibliotecario', async function (req, res) {
+  //   try {
+  //     const resp = await bibliotecarioController.listarBibliotecario();
+  //     res.json(resp);
+  //   } catch (error) {
+  //     console.error("Erro ao listar bibliotecarios:", error);
+  //     res.status(500).json({ error: "Erro ao listar bibliotecarios" });
+  //   }
+  // });
+
+  app.post('/listarBibliotecario', async function (req, res) {
+    try {
+      const { login, senha } = req.body
+      const resultado = await bibliotecarioController.procurarBibliotecarioPeloLogin(login);
+
+      if (!resultado || resultado.length === 0 || resultado[0].senha !== senha) {
+        return res.status(401).json({ message: "Usuário ou senha incorretos" });
+      }
+
+      res.json({ sucesso: true, usuario: resultado[0] });
+    } catch (error) {
+      console.error("Erro ao verificar login:", error);
+      res.status(500).json({ message: "Erro no servidor" });
+    }
+  });
+
+  app.post('/cadastrarBibliotecario', function (req, res) {
+    const novo_bibliotecario = new bibliotecario(null, req.body.login, req.body.senha, req.body.is_ativo);
+
+    bibliotecarioController.criarBibliotecario(novo_bibliotecario)
+      .then(resp => {
+        res.json({ mensagem: resp });
+      })
+      .catch(err => {
+        res.status(500).json({ error: 'Erro ao cadastrar bibliotecario' });
+      });
+
+  });
+
+  app.post('/removerBibliotecario', function (req, res) {
+    const resultado = bibliotecario.removerBibliotecario(req.query.id_bibliotecario);
+    resultado.then(resp => { res.redirect('/listarBibliotecarios'); });
+  });
+
+
+  app.listen(port, () => {
+    console.log(`Servidor rodando na porta ${port}...`);
+  });
