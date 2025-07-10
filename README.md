@@ -66,3 +66,24 @@ node app.js
 ```
 
 
+## 📬 Integrantes
+
+* Ana Julia Defendi: [@defendii](https://github.com/defendii)
+Responsável pela implementação dos CRUD
+---
+* Ana Julia Menegasso: [@AnaMenegeasso](https://github.com/AnaMenegasso)
+Responsável pela implementação do empréstimo e da divída 
+---
+* Luana Rodrigues Brizola: [@luanabrizola](https://github.com/luanabrizola)
+Responsável por todas as associações (editora do livro, categoria do livro, etc...)
+
+Todas ajudaram na lógica do banco de dados.
+
+## 📸Exemplo de uso das funcionalidades
+* Cadastrar editora
+![Editora](./imagemReadme/cadastrarEditora.jpeg)
+
+* Listar categorias
+![Categoria](./imagemReadme/listarCategorias.jpeg)
+
+
